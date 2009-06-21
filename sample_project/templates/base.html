@@ -1,0 +1,34 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+    <head>
+        <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+        <title>{% if site_name %}{{ site_name }} : {% endif %}{% block head_title %}{% endblock %}</title>
+        {% block extra_head_base %}
+            {% block extra_head %}{% endblock %}
+        {% endblock %}
+    </head>
+    <body>
+        {% block body_outer %}
+        <div id="body">
+            {% if messages %}
+                <ul id="messages">
+                    {% for message in messages %}
+                    <li id="message_{{ forloop.counter }}"><a href="#" onclick="$('#message_{{ forloop.counter }}').fadeOut(); return false;"><small>clear</small></a> {{ message }}</li>
+                    {% endfor %}
+                </ul>
+            {% endif %}
+            
+            {% block body %}
+            {% endblock %}
+            
+        </div>
+        {% endblock %}
+        
+        <div id="footer">{% block footer %}{% endblock %}</div>
+        
+        <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.3.2/jquery.min.js" type="text/javascript"></script>
+        {% block extra_body_base %}
+            {% block extra_body %}{% endblock %}
+        {% endblock %}
+    </body>
+</html>
