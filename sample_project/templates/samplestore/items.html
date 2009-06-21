@@ -1,0 +1,11 @@
+{% extends "base.html" %}
+
+{% block body %}
+{% if items %}
+<ul>
+{% for item in items %}
+    <li>{{ item.title }} - {{ item.price }} <a href="{% url samplestore_commit_to_buy item.id %}">Buy</a></li>
+{% endfor %}
+</ul>
+{% endif %}
+{% endblock %}

@@ -8,6 +8,8 @@ ADMINS = (
    # ('Your name', 'email@example.com'),
 )
 
+AUTH_PROFILE_MODULE = 'samplestore.Customer'
+
 MANAGERS = ADMINS
 
 DATABASE_ENGINE = 'sqlite3'           # 'postgresql_psycopg2', 'postgresql', 'mysql', 'sqlite3' or 'oracle'.

@@ -1,0 +1,9 @@
+{% extends "base.html" %}
+
+{% block body %}
+Are you sure you want to buy the following item: {{ item.title }} - {{ item.price }}?
+<form action="." method="POST">
+<input type="submit" name="yes" value="Yes" />
+<input type="submit" name="no" value="No" />
+</form>
+{% endblock %}

@@ -3,6 +3,7 @@
 {% block body %}
 <form action="{{ post_url }}" method="POST">
     {{ form.as_p }}
+    {{ billing_form.as_p }}
     <input type="submit" value="Buy" />
 </form>
 {% endblock %}
