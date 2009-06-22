@@ -33,3 +33,37 @@ class SIMBillingForm(forms.Form):
     x_fax = forms.CharField(max_length=25, widget=forms.HiddenInput)
     x_email = forms.CharField(max_length=255, widget=forms.HiddenInput)
     x_cust_id = forms.CharField(max_length=20, widget=forms.HiddenInput)
+
+AIM_DEFAULT_DICT = {
+    'x_login': settings.AUTHNET_LOGIN_ID,
+    'x_tran_key': settings.AUTHNET_TRANSACTION_KEY,
+    'x_delim_data': "TRUE",
+    'x_delim_char': "|",
+    'x_relay_response': "FALSE",
+    'x_type': "AUTH_CAPTURE",
+    'x_method': "CC"
+}
+
+VISA_TEST = {
+    'x_card_num': "4007000000027"
+}
+AMEX_TEST = {
+    'x_card_num': "370000000000002"
+}
+DISCOVER_TEST = {
+    'x_card_num': "6011000000000012"
+}
+VISA2_TEST = {
+    'x_card_num': "4012888818888"
+}
+JCB_TEST = {
+    'x_card_num': "3088000000000017"
+}
+DINERS_TEST = {
+    'x_card_num': "38000000000006"
+}
+from datetime import date, timedelta
+test_date = date.today() + timedelta(days=365)
+TEST_EXP_DATE = {
+    'x_exp_date': test_date.strftime('%m%y') 
+}

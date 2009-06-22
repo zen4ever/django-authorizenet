@@ -31,7 +31,7 @@ def make_payment(request, invoice_id):
     if invoice.customer.user != request.user:
         raise Http404
     params = {
-        'x_amount' : '100.00',
+        'x_amount' : "%.2f" % invoice.item.price,
         'x_fp_sequence': invoice_id,
         'x_invoice_num': invoice_id,
         'x_description': invoice.item.title,

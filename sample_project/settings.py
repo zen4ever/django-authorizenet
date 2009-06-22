@@ -26,6 +26,8 @@ DATABASE_PORT = ''             # Set to empty string for default. Not used with 
 # system time zone.
 TIME_ZONE = 'America/Los_Angeles'
 
+LOGIN_URL = '/admin/'
+
 # Language code for this installation. All choices can be found here:
 # http://www.i18nguy.com/unicode/language-identifiers.html
 LANGUAGE_CODE = 'en-us'
@@ -60,10 +62,18 @@ TEMPLATE_LOADERS = (
 #     'django.template.loaders.eggs.load_template_source',
 )
 
+TEMPLATE_CONTEXT_PROCESSORS = (
+    "django.core.context_processors.auth",
+    "django.core.context_processors.debug",
+    "django.core.context_processors.request",
+    "django.core.context_processors.media"
+    )
+
 MIDDLEWARE_CLASSES = (
     'django.middleware.common.CommonMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
+    'djangodblog.DBLogMiddleware',
 )
 
 ROOT_URLCONF = 'urls'
@@ -83,6 +93,7 @@ INSTALLED_APPS = (
     'django.contrib.admin',
     'authorizenet',
     'samplestore',
+    'djangodblog',
 )
 
 from local_settings import *

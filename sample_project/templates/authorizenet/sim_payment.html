@@ -1,4 +1,17 @@
 {% extends "base.html" %}
 
 {% block body %}
+{{ request.POST }}
+<ul>
+   <li>Response: {{ request.POST.x_response_reason_text }}</li>
+   <li>Response code: {{ request.POST.x_response_code }}</li>
+   <li>Response reason code: {{ request.POST.x_response_reason_code }}</li>
+   <li>Authorization code: {{ request.POST.x_auth_code }}</li>
+   <li>Response subcode: {{ request.POST.x_response_subcode }}</li>
+   <li>AVS code: {{ request.POST.x_avs_code }}</li>
+   <li>Invoice Number: {{ request.POST.x_invoice_num }}</li>
+   <li>Transaction ID: {{ request.POST.x_trans_id }}</li>
+   <li>Amount: {{ request.POST.x_amount }}</li>
+   <li>Description: {{ request.POST.x_description }}</li>
+</ul>
 {% endblock %}
