@@ -4,7 +4,7 @@
 {% if items %}
 <ul>
 {% for item in items %}
-    <li>{{ item.title }} - {{ item.price }} <a href="{% url samplestore_commit_to_buy item.id %}">Buy</a></li>
+    <li>{{ item.title }} - {{ item.price }} <a href="{% url samplestore_commit_to_buy item.id %}">Buy</a> <a href="{% url samplestore_create_invoice item.id %}">Make direct payment</a></li>
 {% endfor %}
 </ul>
 {% endif %}

@@ -105,16 +105,16 @@ class Response(models.Model):
     ship_to_state = models.CharField(max_length=40, blank=True)
     ship_to_zip = models.CharField(max_length=20, blank=True)
     ship_to_country = models.CharField(max_length=60, blank=True)
-    tax = models.CharField(max_length=16)
-    duty = models.CharField(max_length=16)
-    freight = models.CharField(max_length=16)
-    tax_exempt = models.CharField(max_length=16)
+    tax = models.CharField(max_length=16, blank=True)
+    duty = models.CharField(max_length=16, blank=True)
+    freight = models.CharField(max_length=16, blank=True)
+    tax_exempt = models.CharField(max_length=16, blank=True)
     po_num = models.CharField(max_length=25, blank=True)
     MD5_Hash = models.CharField(max_length=255)
     cvv2_resp_code = models.CharField(max_length=2, choices=CVV2_RESPONSE_CODE_CHOICES, blank=True)
     cavv_response = models.CharField(max_length=2, choices=CAVV_RESPONSE_CODE_CHOICES, blank=True)
 
-    test_request = models.CharField(max_length=10, default="FALSE")
+    test_request = models.CharField(max_length=10, default="FALSE", blank=True)
 
     objects = ResponseManager()
 

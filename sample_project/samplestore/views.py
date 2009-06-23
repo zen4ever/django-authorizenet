@@ -4,7 +4,8 @@ from django.shortcuts import render_to_response, get_object_or_404
 from django.template import RequestContext
 from django.core.urlresolvers import reverse
 from django.contrib.sites.models import Site
-from authorizenet.forms import SIMPaymentForm, AUTHNET_POST_URL, AUTHNET_TEST_POST_URL, SIMBillingForm
+from authorizenet.forms import SIMPaymentForm, SIMBillingForm
+from authorizenet import AUTHNET_POST_URL, AUTHNET_TEST_POST_URL
 from authorizenet.utils import get_fingerprint
 from samplestore.models import Invoice, Item, Address
 from django.contrib.auth.decorators import login_required
@@ -64,4 +65,31 @@ def make_payment(request, invoice_id):
     else:
         post_url = AUTHNET_POST_URL
     return render_to_response('samplestore/make_payment.html', {'form':form, 'billing_form':billing_form, 'post_url':post_url}, context_instance=RequestContext(request))
+
+@login_required
+def create_invoice(request, item_id):
+    item = get_object_or_404(Item, id=item_id)
+    invoice = Invoice.objects.create(item=item, customer=request.user.get_profile())
+    return HttpResponseRedirect(reverse('samplestore_make_direct_payment', args=[invoice.id]))
+
+@login_required
+def make_direct_payment(request, invoice_id):
+    domain = Site.objects.get_current().domain
+    invoice = get_object_or_404(Invoice, id=invoice_id)
+    if invoice.customer.user != request.user:
+        raise Http404
+    try:
+        ba = invoice.customer.address_set.get(type='billing')
+        extra_data = { 'phone': ba.phone,
+                       'fax': ba.fax,
+                       'email': request.user.email,
+                       'cust_id': invoice.customer.id }
+    except Address.DoesNotExist:
+        extra_data = {} 
+    extra_data['amount'] = "%.2f" % invoice.item.price
+    extra_data['invoice_num'] = invoice.id
+    extra_data['description'] = invoice.item.title
+    from authorizenet.views import AIMPayment
+    pp = AIMPayment(extra_data=extra_data, context={'item':invoice.item})
+    return pp(request)
 

@@ -1,9 +1,6 @@
 from django import forms
 from django.conf import settings
-
-AUTHNET_POST_URL = "http://secure.authorize.net/gateway/transact.dll"  
-AUTHNET_TEST_POST_URL = "https://test.authorize.net/gateway/transact.dll"
-
+from authorizenet.fields import CreditCardField, CreditCardExpiryField, CreditCardCVV2Field, CountryField 
 
 class SIMPaymentForm(forms.Form):
      x_login = forms.CharField(max_length=20, required=True, widget=forms.HiddenInput, initial=settings.AUTHNET_LOGIN_ID)
@@ -34,6 +31,39 @@ class SIMBillingForm(forms.Form):
     x_email = forms.CharField(max_length=255, widget=forms.HiddenInput)
     x_cust_id = forms.CharField(max_length=20, widget=forms.HiddenInput)
 
+class AIMPaymentForm(forms.Form):
+    first_name = forms.CharField(50, label="First Name")
+    last_name = forms.CharField(50, label="Last Name")
+    company = forms.CharField(50, label="Company")
+    address = forms.CharField(60, label="Street Address")
+    city = forms.CharField(40, label="City")
+    state = forms.CharField(40, label="State")
+    country = CountryField(label="Country", initial="US")
+    zip = forms.CharField(20, label="Postal / Zip Code")
+    card_num = CreditCardField(label="Credit Card Number")
+    exp_date = CreditCardExpiryField(label="Expiration Date")
+    card_code = CreditCardCVV2Field(label="Card Security Code")
+
+    def mapping(self):
+        return map(lambda x: (x[0], 'x_'+x[0]), 
+                   self.__class__.base_fields.items())
+
+    def extract_data(self, form_data):
+        field_mapping = dict(self.mapping())
+        return dict(map(lambda x: (field_mapping[x[0]], x[1]), 
+                        form_data.items()))
+
+    def process(self, form_data, extra_data):
+        data = self.extract_data(form_data)
+        data.update(dict(map(lambda x: ('x_'+x[0], x[1]), 
+                             extra_data.items())))
+        data['x_exp_date']=data['x_exp_date'].strftime('%m%y')
+        from authorizenet.helpers import AIMPaymentHelper
+        helper = AIMPaymentHelper(defaults=AIM_DEFAULT_DICT)
+        response_list = helper.get_response(data)
+        from authorizenet.models import Response
+        return Response.objects.create_from_list(response_list)
+
 AIM_DEFAULT_DICT = {
     'x_login': settings.AUTHNET_LOGIN_ID,
     'x_tran_key': settings.AUTHNET_TRANSACTION_KEY,
@@ -44,26 +74,17 @@ AIM_DEFAULT_DICT = {
     'x_method': "CC"
 }
 
-VISA_TEST = {
-    'x_card_num': "4007000000027"
-}
-AMEX_TEST = {
-    'x_card_num': "370000000000002"
-}
-DISCOVER_TEST = {
-    'x_card_num': "6011000000000012"
-}
-VISA2_TEST = {
-    'x_card_num': "4012888818888"
-}
-JCB_TEST = {
-    'x_card_num': "3088000000000017"
-}
-DINERS_TEST = {
-    'x_card_num': "38000000000006"
-}
-from datetime import date, timedelta
-test_date = date.today() + timedelta(days=365)
-TEST_EXP_DATE = {
-    'x_exp_date': test_date.strftime('%m%y') 
-}
+TEST_CARD_NUMBERS = [
+     "4007000000027",
+     "370000000000002",
+     "6011000000000012",
+     "4012888818888",
+     "3088000000000017",
+     "38000000000006",
+]
+
+def get_test_exp_date():
+    from datetime import date, timedelta
+    test_date = date.today() + timedelta(days=365)
+    return test_date.strftime('%m%y') 
+

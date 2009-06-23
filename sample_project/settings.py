@@ -73,6 +73,7 @@ MIDDLEWARE_CLASSES = (
     'django.middleware.common.CommonMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
+    'django.contrib.redirects.middleware.RedirectFallbackMiddleware',
     'djangodblog.DBLogMiddleware',
 )
 
@@ -91,9 +92,12 @@ INSTALLED_APPS = (
     'django.contrib.sessions',
     'django.contrib.sites',
     'django.contrib.admin',
+    'django.contrib.redirects',
     'authorizenet',
     'samplestore',
     'djangodblog',
+    'django_extensions',
 )
+
 
 from local_settings import *

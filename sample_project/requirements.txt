@@ -1,1 +1,2 @@
 -e svn+http://django-db-log.googlecode.com/svn/trunk/#egg=djangodblog
+django-extensions
