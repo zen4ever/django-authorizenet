@@ -1,0 +1,8 @@
+{% extends "base.html" %}
+
+{% block body %}
+<p>Response: {{ response.response_reason_text }}</p>
+<p>Transaction ID: {{ response.trans_id }}</p>
+<p>Description: {{ response.description }}</p>
+<p>Amount: {{ response.amount }}</p>
+{% endblock %}

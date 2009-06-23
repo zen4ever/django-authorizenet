@@ -19,11 +19,11 @@ class AIMPayment(object):
     form_error = "Please correct the errors below and try again."
 
     def __init__(self, extra_data=None, payment_form_class=AIMPaymentForm, context=None,
-                 payment_template="authorizenet/aim_payment.html", success_url='/store/success/'):
+                 payment_template="authorizenet/aim_payment.html", success_template='authorizenet/aim_success.html'):
         self.extra_data = extra_data
         self.payment_form_class = payment_form_class
         self.payment_template = payment_template
-        self.success_url = success_url
+        self.success_template = success_template
         self.context = context
 
     def __call__(self, request):
@@ -43,7 +43,8 @@ class AIMPayment(object):
             response = form.process(form.cleaned_data, self.extra_data)
             if response.response_code=='1':
                 payment_was_successful.send(sender=response)
-                return HttpResponseRedirect(self.success_url)
+                self.context['response'] = response
+                return render_to_response(self.success_template, self.context, context_instance=RequestContext(self.request))
             else:
                 payment_was_flagged.send(sender=response)
                 self.context['errors'] = self.processing_error
