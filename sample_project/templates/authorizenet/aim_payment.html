@@ -5,6 +5,7 @@
 {{ item.price }}</p>
 <p>{{ errors }}</p>
 <form action="." method="POST">
+{{ billing_form.as_p }}
 {{ form.as_p }}
 <input type="submit" value="Pay" />
 </form>

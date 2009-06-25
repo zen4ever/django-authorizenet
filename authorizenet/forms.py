@@ -31,7 +31,7 @@ class SIMBillingForm(forms.Form):
     x_email = forms.CharField(max_length=255, widget=forms.HiddenInput)
     x_cust_id = forms.CharField(max_length=20, widget=forms.HiddenInput)
 
-class AIMPaymentForm(forms.Form):
+class BillingAddressForm(forms.Form):
     first_name = forms.CharField(50, label="First Name")
     last_name = forms.CharField(50, label="Last Name")
     company = forms.CharField(50, label="Company")
@@ -40,39 +40,11 @@ class AIMPaymentForm(forms.Form):
     state = forms.CharField(40, label="State")
     country = CountryField(label="Country", initial="US")
     zip = forms.CharField(20, label="Postal / Zip Code")
+
+class AIMPaymentForm(forms.Form):
     card_num = CreditCardField(label="Credit Card Number")
     exp_date = CreditCardExpiryField(label="Expiration Date")
     card_code = CreditCardCVV2Field(label="Card Security Code")
-
-    def mapping(self):
-        return map(lambda x: (x[0], 'x_'+x[0]), 
-                   self.__class__.base_fields.items())
-
-    def extract_data(self, form_data):
-        field_mapping = dict(self.mapping())
-        return dict(map(lambda x: (field_mapping[x[0]], x[1]), 
-                        form_data.items()))
-
-    def process(self, form_data, extra_data):
-        data = self.extract_data(form_data)
-        data.update(dict(map(lambda x: ('x_'+x[0], x[1]), 
-                             extra_data.items())))
-        data['x_exp_date']=data['x_exp_date'].strftime('%m%y')
-        from authorizenet.helpers import AIMPaymentHelper
-        helper = AIMPaymentHelper(defaults=AIM_DEFAULT_DICT)
-        response_list = helper.get_response(data)
-        from authorizenet.models import Response
-        return Response.objects.create_from_list(response_list)
-
-AIM_DEFAULT_DICT = {
-    'x_login': settings.AUTHNET_LOGIN_ID,
-    'x_tran_key': settings.AUTHNET_TRANSACTION_KEY,
-    'x_delim_data': "TRUE",
-    'x_delim_char': "|",
-    'x_relay_response': "FALSE",
-    'x_type': "AUTH_CAPTURE",
-    'x_method': "CC"
-}
 
 TEST_CARD_NUMBERS = [
      "4007000000027",

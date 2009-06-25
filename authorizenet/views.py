@@ -1,7 +1,7 @@
 from django.shortcuts import render_to_response
 from django.template import RequestContext
 from authorizenet.models import Response
-from authorizenet.forms import AIMPaymentForm
+from authorizenet.forms import AIMPaymentForm, BillingAddressForm
 from authorizenet.signals import payment_was_successful, payment_was_flagged
 from django.http import HttpResponseRedirect
 
@@ -18,7 +18,7 @@ class AIMPayment(object):
     processing_error = "There was an error processing your payment. Check your information and try again."
     form_error = "Please correct the errors below and try again."
 
-    def __init__(self, extra_data=None, payment_form_class=AIMPaymentForm, context=None,
+    def __init__(self, extra_data=None, billing_form_class=BillingAddressForm, payment_form_class=AIMPaymentForm, context=None,
                  payment_template="authorizenet/aim_payment.html", success_template='authorizenet/aim_success.html', initial_data={}):
         self.extra_data = extra_data
         self.payment_form_class = payment_form_class
@@ -26,6 +26,7 @@ class AIMPayment(object):
         self.success_template = success_template
         self.context = context
         self.initial_data = initial_data
+        self.billing_form_class = billing_form_class
 
     def __call__(self, request):
         self.request = request
@@ -36,12 +37,21 @@ class AIMPayment(object):
 
     def render_payment_form(self):
         self.context['form'] = self.payment_form_class(initial=self.initial_data)
+        self.context['billing_form'] = self.billing_form_class(initial=self.initial_data)
         return render_to_response(self.payment_template, self.context, context_instance=RequestContext(self.request))
+
+    def combine_form_data(self, payment_form, billing_form):
+        data = dict(billing_form.cleaned_data)
+        data.update(payment_form.cleaned_data)
+        return data
 
     def validate_payment_form(self):
         form = self.payment_form_class(self.request.POST)
-        if form.is_valid():
-            response = form.process(form.cleaned_data, self.extra_data)
+        billing_form = self.billing_form_class(self.request.POST)
+        if form.is_valid() and billing_form.is_valid():
+            data = self.combine_form_data(form, billing_form)
+            from authorizenet.utils import process_payment
+            response = process_payment(data, self.extra_data)
             if response.response_code=='1':
                 payment_was_successful.send(sender=response)
                 self.context['response'] = response
@@ -50,6 +60,7 @@ class AIMPayment(object):
                 payment_was_flagged.send(sender=response)
                 self.context['errors'] = self.processing_error
         self.context['form'] = form
+        self.context['billing_form'] = billing_form
         self.context.setdefault('errors', self.form_error)
         return render_to_response(self.payment_template, self.context, context_instance=RequestContext(self.request))
 
