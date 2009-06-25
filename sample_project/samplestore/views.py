@@ -80,16 +80,24 @@ def make_direct_payment(request, invoice_id):
         raise Http404
     try:
         ba = invoice.customer.address_set.get(type='billing')
+        initial_data = {'first_name': ba.first_name, 
+                        'last_name': ba.last_name,
+                        'company': ba.company,
+                        'address': ba.address,
+                        'city': ba.city, 
+                        'state': ba.state,
+                        'zip': ba.zip_code }
         extra_data = { 'phone': ba.phone,
                        'fax': ba.fax,
                        'email': request.user.email,
                        'cust_id': invoice.customer.id }
     except Address.DoesNotExist:
+        initial_data = {}
         extra_data = {} 
     extra_data['amount'] = "%.2f" % invoice.item.price
     extra_data['invoice_num'] = invoice.id
     extra_data['description'] = invoice.item.title
     from authorizenet.views import AIMPayment
-    pp = AIMPayment(extra_data=extra_data, context={'item':invoice.item})
+    pp = AIMPayment(extra_data=extra_data, context={'item':invoice.item}, initial_data=initial_data)
     return pp(request)
 

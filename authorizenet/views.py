@@ -19,12 +19,13 @@ class AIMPayment(object):
     form_error = "Please correct the errors below and try again."
 
     def __init__(self, extra_data=None, payment_form_class=AIMPaymentForm, context=None,
-                 payment_template="authorizenet/aim_payment.html", success_template='authorizenet/aim_success.html'):
+                 payment_template="authorizenet/aim_payment.html", success_template='authorizenet/aim_success.html', initial_data={}):
         self.extra_data = extra_data
         self.payment_form_class = payment_form_class
         self.payment_template = payment_template
         self.success_template = success_template
         self.context = context
+        self.initial_data = initial_data
 
     def __call__(self, request):
         self.request = request
@@ -34,7 +35,7 @@ class AIMPayment(object):
             return self.validate_payment_form()
 
     def render_payment_form(self):
-        self.context['form'] = self.payment_form_class()
+        self.context['form'] = self.payment_form_class(initial=self.initial_data)
         return render_to_response(self.payment_template, self.context, context_instance=RequestContext(self.request))
 
     def validate_payment_form(self):
