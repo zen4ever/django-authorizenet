@@ -14,7 +14,6 @@ class AIMPaymentHelper(object):
     def get_response(self, data):
         final_data = dict(self.defaults)
         final_data.update(data)
-        print final_data
         c = final_data['x_delim_char']
         request_string = urllib.urlencode(final_data)
         response = urllib2.urlopen(self.endpoint, request_string).read()

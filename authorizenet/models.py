@@ -63,12 +63,10 @@ CAVV_RESPONSE_CODE_CHOICES = (
 class ResponseManager(models.Manager):
     def create_from_dict(self, params):
         kwargs=dict(map(lambda x: (str(x[0][2:]), x[1]), params.items()))
-        print kwargs
         return self.create(**kwargs)
 
     def create_from_list(self, items):
         kwargs=dict(zip(map(lambda x: x.name, Response._meta.fields)[1:], items))
-        print kwargs
         return self.create(**kwargs)
 
 
