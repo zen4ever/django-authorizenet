@@ -58,6 +58,8 @@ class AIMPayment(object):
     def forms_are_valid(self, forms):
         return reduce(lambda x,y: x and y, map(lambda x: x.is_valid(), forms))
 
+    def add_forms_to_context(self, forms):
+        self.context['billing_form'] = forms[0]
 
     def validate_payment_form(self):
         form = self.payment_form_class(self.request.POST)
@@ -74,7 +76,7 @@ class AIMPayment(object):
                 payment_was_flagged.send(sender=response)
                 self.context['errors'] = self.processing_error
         self.context['form'] = form
-        self.context['billing_form'] = billing_form
+        self.add_forms_to_context(forms)
         self.context.setdefault('errors', self.form_error)
         return render_to_response(self.payment_template, self.context, context_instance=RequestContext(self.request))
 
