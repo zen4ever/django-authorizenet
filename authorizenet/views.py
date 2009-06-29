@@ -14,12 +14,14 @@ def sim_payment(request):
     return render_to_response('authorizenet/sim_payment.html', context_instance=RequestContext(request))
 
 class AIMPayment(object):
+    """
+    Class to handle credit card payments to Authorize.NET
+    """
 
     processing_error = "There was an error processing your payment. Check your information and try again."
     form_error = "Please correct the errors below and try again."
 
-    def __init__(self, extra_data=None, billing_form_class=BillingAddressForm, payment_form_class=AIMPaymentForm, context=None,
-                 payment_template="authorizenet/aim_payment.html", success_template='authorizenet/aim_success.html', initial_data={}):
+    def __init__(self, extra_data=None, payment_form_class=AIMPaymentForm, context=None, billing_form_class=BillingAddressForm, payment_template="authorizenet/aim_payment.html", success_template='authorizenet/aim_success.html', initial_data={}):
         self.extra_data = extra_data
         self.payment_form_class = payment_form_class
         self.payment_template = payment_template
@@ -35,21 +37,33 @@ class AIMPayment(object):
         else:
             return self.validate_payment_form()
 
+    def create_initial_forms(self):
+        self.context['billing_form'] = self.billing_form_class(initial=self.initial_data)
+
     def render_payment_form(self):
         self.context['form'] = self.payment_form_class(initial=self.initial_data)
-        self.context['billing_form'] = self.billing_form_class(initial=self.initial_data)
+        self.create_initial_forms()
         return render_to_response(self.payment_template, self.context, context_instance=RequestContext(self.request))
 
-    def combine_form_data(self, payment_form, billing_form):
+    def combine_form_data(self, payment_form, *args):
+        billing_form = args[0]
         data = dict(billing_form.cleaned_data)
         data.update(payment_form.cleaned_data)
         return data
 
+    def create_forms(self):
+        billing_form = self.billing_form_class(self.request.POST)
+        return [billing_form]
+
+    def forms_are_valid(self, forms):
+        return reduce(lambda x,y: x and y, map(lambda x: x.is_valid(), forms))
+
+
     def validate_payment_form(self):
         form = self.payment_form_class(self.request.POST)
-        billing_form = self.billing_form_class(self.request.POST)
-        if form.is_valid() and billing_form.is_valid():
-            data = self.combine_form_data(form, billing_form)
+        forms = self.create_forms()
+        if form.is_valid() and self.forms_are_valid(forms):
+            data = self.combine_form_data(form, *forms)
             from authorizenet.utils import process_payment
             response = process_payment(data, self.extra_data)
             if response.response_code=='1':
