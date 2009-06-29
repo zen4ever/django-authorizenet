@@ -1,2 +1,4 @@
 Django integration with Authorize.NET payment gateway.
 Includes SIM and AIM implementations.
+
+Software is in pre alpha stage, so use it at your own risk.
