@@ -41,3 +41,9 @@ def process_payment(form_data, extra_data):
         payment_was_flagged.send(sender=response)
     return response
 
+def combine_form_data(*args):
+    data = {}
+    for form in args:
+        data.update(form.cleaned_data)
+    return data
+

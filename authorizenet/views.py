@@ -37,44 +37,25 @@ class AIMPayment(object):
         else:
             return self.validate_payment_form()
 
-    def create_initial_forms(self):
-        self.context['billing_form'] = self.billing_form_class(initial=self.initial_data)
-
     def render_payment_form(self):
-        self.context['form'] = self.payment_form_class(initial=self.initial_data)
-        self.create_initial_forms()
+        self.context['payment_form'] = self.payment_form_class(initial=self.initial_data)
+        self.context['billing_form'] = self.billing_form_class(initial=self.initial_data)
         return render_to_response(self.payment_template, self.context, context_instance=RequestContext(self.request))
 
-    def combine_form_data(self, payment_form, *args):
-        billing_form = args[0]
-        data = dict(billing_form.cleaned_data)
-        data.update(payment_form.cleaned_data)
-        return data
-
-    def create_forms(self):
-        billing_form = self.billing_form_class(self.request.POST)
-        return [billing_form]
-
-    def forms_are_valid(self, forms):
-        return reduce(lambda x,y: x and y, map(lambda x: x.is_valid(), forms))
-
-    def add_forms_to_context(self, forms):
-        self.context['billing_form'] = forms[0]
-
     def validate_payment_form(self):
-        form = self.payment_form_class(self.request.POST)
-        forms = self.create_forms()
-        if form.is_valid() and self.forms_are_valid(forms):
-            form_data = self.combine_form_data(form, *forms)
-            from authorizenet.utils import process_payment
+        payment_form = self.payment_form_class(self.request.POST)
+        billing_form = self.billing_form_class(self.request.POST)
+        if payment_form.is_valid() and billing_form.is_valid():
+            from authorizenet.utils import process_payment, combine_form_data
+            form_data = combine_form_data(payment_form, billing_form)
             response = process_payment(form_data, self.extra_data)
+            self.context['response'] = response
             if response.is_approved:
-                self.context['response'] = response
                 return render_to_response(self.success_template, self.context, context_instance=RequestContext(self.request))
             else:
                 self.context['errors'] = self.processing_error
-        self.context['form'] = form
-        self.add_forms_to_context(forms)
+        self.context['payment_form'] = payment_form
+        self.context['billing_form'] = billing_form
         self.context.setdefault('errors', self.form_error)
         return render_to_response(self.payment_template, self.context, context_instance=RequestContext(self.request))
 
