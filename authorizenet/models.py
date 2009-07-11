@@ -116,3 +116,7 @@ class Response(models.Model):
 
     objects = ResponseManager()
 
+    @property
+    def is_approved(self):
+        return self.response_code=='1'
+

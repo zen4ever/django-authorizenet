@@ -2,12 +2,12 @@ from django.shortcuts import render_to_response
 from django.template import RequestContext
 from authorizenet.models import Response
 from authorizenet.forms import AIMPaymentForm, BillingAddressForm
-from authorizenet.signals import payment_was_successful, payment_was_flagged
 from django.http import HttpResponseRedirect
+from authorizenet.signals import payment_was_successful, payment_was_flagged
 
 def sim_payment(request):
     response = Response.objects.create_from_dict(request.POST)
-    if response.response_code=='1':
+    if response.is_approved:
         payment_was_successful.send(sender=response)
     else:
         payment_was_flagged.send(sender=response)
@@ -65,18 +65,17 @@ class AIMPayment(object):
         form = self.payment_form_class(self.request.POST)
         forms = self.create_forms()
         if form.is_valid() and self.forms_are_valid(forms):
-            data = self.combine_form_data(form, *forms)
+            form_data = self.combine_form_data(form, *forms)
             from authorizenet.utils import process_payment
-            response = process_payment(data, self.extra_data)
-            if response.response_code=='1':
-                payment_was_successful.send(sender=response)
+            response = process_payment(form_data, self.extra_data)
+            if response.is_approved:
                 self.context['response'] = response
                 return render_to_response(self.success_template, self.context, context_instance=RequestContext(self.request))
             else:
-                payment_was_flagged.send(sender=response)
                 self.context['errors'] = self.processing_error
         self.context['form'] = form
         self.add_forms_to_context(forms)
         self.context.setdefault('errors', self.form_error)
         return render_to_response(self.payment_template, self.context, context_instance=RequestContext(self.request))
+
 
