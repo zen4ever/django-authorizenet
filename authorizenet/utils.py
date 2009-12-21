@@ -32,6 +32,8 @@ def process_payment(form_data, extra_data):
     data.update(dict(map(lambda x: ('x_'+x[0], x[1]), 
                          extra_data.items())))
     data['x_exp_date']=data['x_exp_date'].strftime('%m%y')
+    if hasattr(settings, 'AUTHNET_FORCE_TEST_REQUEST') and settings.AUTHNET_FORCE_TEST_REQUEST:
+        data['x_test_request']='TRUE'
     helper = AIMPaymentHelper(defaults=AIM_DEFAULT_DICT)
     response_list = helper.get_response(data)
     response = Response.objects.create_from_list(response_list)
