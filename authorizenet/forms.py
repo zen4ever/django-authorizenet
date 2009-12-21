@@ -34,7 +34,7 @@ class SIMBillingForm(forms.Form):
 class BillingAddressForm(forms.Form):
     first_name = forms.CharField(50, label="First Name")
     last_name = forms.CharField(50, label="Last Name")
-    company = forms.CharField(50, label="Company")
+    company = forms.CharField(50, label="Company", required=False)
     address = forms.CharField(60, label="Street Address")
     city = forms.CharField(40, label="City")
     state = forms.CharField(40, label="State")
