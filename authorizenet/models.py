@@ -77,12 +77,12 @@ class Response(models.Model):
     response_reason_text = models.TextField()
     auth_code = models.CharField(max_length=10)
     avs_code = models.CharField(max_length=10, choices=AVS_RESPONSE_CODE_CHOICES)
-    trans_id = models.CharField(max_length=255)
+    trans_id = models.CharField(max_length=255, db_index=True)
     invoice_num = models.CharField(max_length=20, blank=True)
     description = models.CharField(max_length=255)
     amount = models.CharField(max_length=16)
     method = models.CharField(max_length=10, choices=METHOD_CHOICES)
-    type = models.CharField(max_length=20, choices=TYPE_CHOICES)
+    type = models.CharField(max_length=20, choices=TYPE_CHOICES, db_index=True)
     cust_id = models.CharField(max_length=20)
     first_name = models.CharField(max_length=50)
     last_name = models.CharField(max_length=50)
@@ -120,3 +120,5 @@ class Response(models.Model):
     def is_approved(self):
         return self.response_code=='1'
 
+    def __unicode__(self):
+        return u"response_code: %s, trans_id: %s, amount: %s, type: %s" % (self.response_code, self.trans_id, self.amount, self.type)

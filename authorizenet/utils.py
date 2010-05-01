@@ -1,5 +1,6 @@
 import hmac
 from django.conf import settings 
+from django.core.exceptions import ImproperlyConfigured
 from authorizenet.helpers import AIMPaymentHelper
 from authorizenet.models import Response
 from authorizenet.signals import payment_was_successful, payment_was_flagged
@@ -27,13 +28,7 @@ AIM_DEFAULT_DICT = {
     'x_method': "CC"
 }
 
-def process_payment(form_data, extra_data):
-    data = extract_form_data(form_data)
-    data.update(dict(map(lambda x: ('x_'+x[0], x[1]), 
-                         extra_data.items())))
-    data['x_exp_date']=data['x_exp_date'].strftime('%m%y')
-    if hasattr(settings, 'AUTHNET_FORCE_TEST_REQUEST') and settings.AUTHNET_FORCE_TEST_REQUEST:
-        data['x_test_request']='TRUE'
+def create_response(data):
     helper = AIMPaymentHelper(defaults=AIM_DEFAULT_DICT)
     response_list = helper.get_response(data)
     response = Response.objects.create_from_list(response_list)
@@ -43,9 +38,32 @@ def process_payment(form_data, extra_data):
         payment_was_flagged.send(sender=response)
     return response
 
+def process_payment(form_data, extra_data):
+    data = extract_form_data(form_data)
+    data.update(dict(map(lambda x: ('x_'+x[0], x[1]),
+                         extra_data.items())))
+    data['x_exp_date']=data['x_exp_date'].strftime('%m%y')
+    if hasattr(settings, 'AUTHNET_FORCE_TEST_REQUEST') and settings.AUTHNET_FORCE_TEST_REQUEST:
+        data['x_test_request']='TRUE'
+    return create_response(data)
+
 def combine_form_data(*args):
     data = {}
     for form in args:
         data.update(form.cleaned_data)
     return data
 
+def capture_transaction(response, extra_data=None):
+    if response.type.lower() != 'auth_only':
+        raise ImproperlyConfigured("You can capture only transactions with AUTH_ONLY type")
+    if extra_data is None:
+        extra_data = {}
+    data = dict(extra_data)
+    data['x_trans_id'] = response.trans_id
+    #if user already specified x_amount, don't override it with response value
+    if not data.get('x_amount', None):
+        data['x_amount'] = response.amount
+    data['x_type'] = 'PRIOR_AUTH_CAPTURE'
+    if hasattr(settings, 'AUTHNET_FORCE_TEST_REQUEST') and settings.AUTHNET_FORCE_TEST_REQUEST:
+        data['x_test_request']='TRUE'
+    return create_response(data)
