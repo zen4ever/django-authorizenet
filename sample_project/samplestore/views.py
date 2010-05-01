@@ -67,13 +67,17 @@ def make_payment(request, invoice_id):
     return render_to_response('samplestore/make_payment.html', {'form':form, 'billing_form':billing_form, 'post_url':post_url}, context_instance=RequestContext(request))
 
 @login_required
-def create_invoice(request, item_id):
+def create_invoice(request, item_id, auth_only=False):
     item = get_object_or_404(Item, id=item_id)
     invoice = Invoice.objects.create(item=item, customer=request.user.get_profile())
-    return HttpResponseRedirect(reverse('samplestore_make_direct_payment', args=[invoice.id]))
+    if auth_only:
+        final_url = reverse('samplestore_make_direct_payment_auth', args=[invoice.id])
+    else:
+        final_url = reverse('samplestore_make_direct_payment', args=[invoice.id])
+    return HttpResponseRedirect(final_url)
 
 @login_required
-def make_direct_payment(request, invoice_id):
+def make_direct_payment(request, invoice_id, auth_only=False):
     domain = Site.objects.get_current().domain
     invoice = get_object_or_404(Invoice, id=invoice_id)
     if invoice.customer.user != request.user:
@@ -94,6 +98,8 @@ def make_direct_payment(request, invoice_id):
     except Address.DoesNotExist:
         initial_data = {}
         extra_data = {} 
+    if auth_only:
+        extra_data['type'] = 'AUTH_ONLY'
     extra_data['amount'] = "%.2f" % invoice.item.price
     extra_data['invoice_num'] = invoice.id
     extra_data['description'] = invoice.item.title
