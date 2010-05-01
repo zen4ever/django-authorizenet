@@ -1,0 +1,9 @@
+{% extends "base.html" %}
+
+{% block body %}
+<ul>
+{% for response in responses %}
+    <li><a href="{% url samplestore_capture response.id %}">{{ response }}</a></li>
+{% endfor %}
+</ul>
+{% endblock %}

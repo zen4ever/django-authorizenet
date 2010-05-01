@@ -1,0 +1,9 @@
+{% extends "base.html" %}
+
+{% block body %}
+{% if new_response.is_approved %}
+<h1>Your transaction {{ response.trans_id }} has been sucessfully captured</h1>
+{% else %}
+<h1>There was an error capturing your transaction {{ response.trans_id }}</h1>
+{% endif %}
+{% endblock %}
