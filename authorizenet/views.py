@@ -1,9 +1,9 @@
-from django.shortcuts import render_to_response
-from django.template import RequestContext
-from authorizenet.models import Response
+from django.views.generic.simple import direct_to_template
+
 from authorizenet.forms import AIMPaymentForm, BillingAddressForm
-from django.http import HttpResponseRedirect
+from authorizenet.models import Response
 from authorizenet.signals import payment_was_successful, payment_was_flagged
+
 
 def sim_payment(request):
     response = Response.objects.create_from_dict(request.POST)
@@ -11,17 +11,26 @@ def sim_payment(request):
         payment_was_successful.send(sender=response)
     else:
         payment_was_flagged.send(sender=response)
-    return render_to_response('authorizenet/sim_payment.html', context_instance=RequestContext(request))
+    return direct_to_template(request, 'authorizenet/sim_payment.html')
+
 
 class AIMPayment(object):
     """
     Class to handle credit card payments to Authorize.NET
     """
 
-    processing_error = "There was an error processing your payment. Check your information and try again."
+    processing_error = ("There was an error processing your payment. "
+                        "Check your information and try again.")
     form_error = "Please correct the errors below and try again."
 
-    def __init__(self, extra_data=None, payment_form_class=AIMPaymentForm, context=None, billing_form_class=BillingAddressForm, payment_template="authorizenet/aim_payment.html", success_template='authorizenet/aim_success.html', initial_data={}):
+    def __init__(self,
+                 extra_data=None,
+                 payment_form_class=AIMPaymentForm,
+                 context=None,
+                 billing_form_class=BillingAddressForm,
+                 payment_template="authorizenet/aim_payment.html",
+                 success_template='authorizenet/aim_success.html',
+                 initial_data={}):
         self.extra_data = extra_data
         self.payment_form_class = payment_form_class
         self.payment_template = payment_template
@@ -38,9 +47,13 @@ class AIMPayment(object):
             return self.validate_payment_form()
 
     def render_payment_form(self):
-        self.context['payment_form'] = self.payment_form_class(initial=self.initial_data)
-        self.context['billing_form'] = self.billing_form_class(initial=self.initial_data)
-        return render_to_response(self.payment_template, self.context, context_instance=RequestContext(self.request))
+        self.context['payment_form'] = self.payment_form_class(
+                initial=self.initial_data)
+        self.context['billing_form'] = self.billing_form_class(
+                initial=self.initial_data)
+        return direct_to_template(self.request,
+                                  self.payment_template,
+                                  self.context)
 
     def validate_payment_form(self):
         payment_form = self.payment_form_class(self.request.POST)
@@ -51,12 +64,14 @@ class AIMPayment(object):
             response = process_payment(form_data, self.extra_data)
             self.context['response'] = response
             if response.is_approved:
-                return render_to_response(self.success_template, self.context, context_instance=RequestContext(self.request))
+                return direct_to_template(self.request,
+                                          self.success_template,
+                                          self.context)
             else:
                 self.context['errors'] = self.processing_error
         self.context['payment_form'] = payment_form
         self.context['billing_form'] = billing_form
         self.context.setdefault('errors', self.form_error)
-        return render_to_response(self.payment_template, self.context, context_instance=RequestContext(self.request))
-
-
+        return direct_to_template(self.request,
+                                  self.payment_template,
+                                  self.context)

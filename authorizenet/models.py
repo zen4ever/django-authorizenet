@@ -60,13 +60,14 @@ CAVV_RESPONSE_CODE_CHOICES = (
     ('B', 'CAVV passed validation, information only, no liability shift'),
 )
 
+
 class ResponseManager(models.Manager):
     def create_from_dict(self, params):
-        kwargs=dict(map(lambda x: (str(x[0][2:]), x[1]), params.items()))
+        kwargs = dict(map(lambda x: (str(x[0][2:]), x[1]), params.items()))
         return self.create(**kwargs)
 
     def create_from_list(self, items):
-        kwargs=dict(zip(map(lambda x: x.name, Response._meta.fields)[1:], items))
+        kwargs = dict(zip(map(lambda x: x.name, Response._meta.fields)[1:], items))
         return self.create(**kwargs)
 
 
@@ -118,7 +119,7 @@ class Response(models.Model):
 
     @property
     def is_approved(self):
-        return self.response_code=='1'
+        return self.response_code == '1'
 
     def __unicode__(self):
         return u"response_code: %s, trans_id: %s, amount: %s, type: %s" % (self.response_code, self.trans_id, self.amount, self.type)
