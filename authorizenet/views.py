@@ -3,6 +3,7 @@ from django.views.generic.simple import direct_to_template
 from authorizenet.forms import AIMPaymentForm, BillingAddressForm
 from authorizenet.models import Response
 from authorizenet.signals import payment_was_successful, payment_was_flagged
+from authorizenet.utils import process_payment, combine_form_data
 
 
 def sim_payment(request):
@@ -59,7 +60,6 @@ class AIMPayment(object):
         payment_form = self.payment_form_class(self.request.POST)
         billing_form = self.billing_form_class(self.request.POST)
         if payment_form.is_valid() and billing_form.is_valid():
-            from authorizenet.utils import process_payment, combine_form_data
             form_data = combine_form_data(payment_form, billing_form)
             response = process_payment(form_data, self.extra_data)
             self.context['response'] = response
