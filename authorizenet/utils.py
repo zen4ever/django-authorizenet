@@ -46,8 +46,7 @@ def create_response(data):
 
 def process_payment(form_data, extra_data):
     data = extract_form_data(form_data)
-    data.update(dict(map(lambda x: ('x_' + x[0], x[1]),
-                         extra_data.items())))
+    data.update(extract_form_data(extra_data))
     data['x_exp_date'] = data['x_exp_date'].strftime('%m%y')
     if hasattr(settings, 'AUTHNET_FORCE_TEST_REQUEST') and settings.AUTHNET_FORCE_TEST_REQUEST:
         data['x_test_request'] = 'TRUE'
