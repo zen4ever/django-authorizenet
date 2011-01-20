@@ -48,7 +48,7 @@ def process_payment(form_data, extra_data):
     data = extract_form_data(form_data)
     data.update(extract_form_data(extra_data))
     data['x_exp_date'] = data['x_exp_date'].strftime('%m%y')
-    if hasattr(settings, 'AUTHNET_FORCE_TEST_REQUEST') and settings.AUTHNET_FORCE_TEST_REQUEST:
+    if getattr(settings, 'AUTHNET_FORCE_TEST_REQUEST', False):
         data['x_test_request'] = 'TRUE'
     return create_response(data)
 
@@ -71,6 +71,6 @@ def capture_transaction(response, extra_data=None):
     if not data.get('x_amount', None):
         data['x_amount'] = response.amount
     data['x_type'] = 'PRIOR_AUTH_CAPTURE'
-    if hasattr(settings, 'AUTHNET_FORCE_TEST_REQUEST') and settings.AUTHNET_FORCE_TEST_REQUEST:
+    if getattr(settings, 'AUTHNET_FORCE_TEST_REQUEST', False):
         data['x_test_request'] = 'TRUE'
     return create_response(data)
