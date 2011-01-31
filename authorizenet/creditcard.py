@@ -25,9 +25,9 @@ TEST_NUMBERS = L("378282246310005 371449635398431 378734493671000"
                  "4111111111111111 4012888888881881 4222222222222")
 
 
-def verify_credit_card(number):
+def verify_credit_card(number, allow_test=False):
     """Returns the card type for given card number or None if invalid."""
-    return CreditCard(number).verify()
+    return CreditCard(number).verify(allow_test)
 
 
 class CreditCard(object):
@@ -60,8 +60,8 @@ class CreditCard(object):
                 return card
         return None
 
-    def verify(self):
+    def verify(self, allow_test):
         """Returns the card type if valid else None."""
-        if self.is_number() and not self.is_test() and self.is_mod10():
+        if self.is_number() and (not self.is_test() or allow_test) and self.is_mod10():
             return self.get_type()
         return None
