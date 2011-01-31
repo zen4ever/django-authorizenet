@@ -79,7 +79,6 @@ def create_invoice(request, item_id, auth_only=False):
 
 @login_required
 def make_direct_payment(request, invoice_id, auth_only=False):
-    domain = Site.objects.get_current().domain
     invoice = get_object_or_404(Invoice, id=invoice_id)
     if invoice.customer.user != request.user:
         raise Http404
