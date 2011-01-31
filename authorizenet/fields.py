@@ -44,7 +44,7 @@ class CreditCardExpiryWidget(forms.MultiWidget):
 
 
 class CreditCardExpiryField(forms.MultiValueField):
-    EXP_MONTH = [(x, x) for x in xrange(1, 13)]
+    EXP_MONTH = [(x, "%02d" % x) for x in xrange(1, 13)]
     EXP_YEAR = [(x, x) for x in xrange(date.today().year,
                                        date.today().year + 15)]
 
