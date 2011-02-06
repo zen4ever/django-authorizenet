@@ -50,15 +50,6 @@ class AIMPaymentForm(forms.Form):
     exp_date = CreditCardExpiryField(label="Expiration Date")
     card_code = CreditCardCVV2Field(label="Card Security Code")
 
-TEST_CARD_NUMBERS = [
-    "4007000000027",
-    "370000000000002",
-    "6011000000000012",
-    "4012888818888",
-    "3088000000000017",
-    "38000000000006",
-]
-
 
 def get_test_exp_date():
     from datetime import date, timedelta
