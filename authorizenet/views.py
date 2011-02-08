@@ -25,9 +25,9 @@ class AIMPayment(object):
     form_error = "Please correct the errors below and try again."
 
     def __init__(self,
-                 extra_data=None,
+                 extra_data={},
                  payment_form_class=AIMPaymentForm,
-                 context=None,
+                 context={},
                  billing_form_class=BillingAddressForm,
                  payment_template="authorizenet/aim_payment.html",
                  success_template='authorizenet/aim_success.html',
