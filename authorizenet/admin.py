@@ -1,5 +1,5 @@
 from django.contrib import admin
-from authorizenet.models import Response
+from authorizenet.models import Response, CIMResponse
 
 
 class ResponseAdmin(admin.ModelAdmin):
@@ -9,3 +9,10 @@ class ResponseAdmin(admin.ModelAdmin):
                     'trans_id']
 
 admin.site.register(Response, ResponseAdmin)
+
+
+class CIMResponseAdmin(admin.ModelAdmin):
+    list_display = ['result_code',
+                    'result']
+
+admin.site.register(CIMResponse, CIMResponseAdmin)
