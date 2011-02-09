@@ -61,6 +61,38 @@ CAVV_RESPONSE_CODE_CHOICES = (
 )
 
 
+CIM_RESPONSE_CODE_CHOICES = (
+    ('I00001', 'Successful'),
+    ('I00003', 'The record has already been deleted.'),
+    ('E00001', 'An error occurred during processing. Please try again.'),
+    ('E00002', 'The content-type specified is not supported.'),
+    ('E00003', 'An error occurred while parsing the XML request.'),
+    ('E00004', 'The name of the requested API method is invalid.'),
+    ('E00005', 'The merchantAuthentication.transactionKey is invalid or not present.'),
+    ('E00006', 'The merchantAuthentication.name is invalid or not present.'),
+    ('E00007', 'User authentication failed due to invalid authentication values.'),
+    ('E00008', 'User authentication failed. The payment gateway account or user is inactive.'),
+    ('E00009', 'The payment gateway account is in Test Mode. The request cannot be processed.'),
+    ('E00010', 'User authentication failed. You do not have the appropriate permissions.'),
+    ('E00011', 'Access denied. You do not have the appropriate permissions.'),
+    ('E00013', 'The field is invalid.'),
+    ('E00014', 'A required field is not present.'),
+    ('E00015', 'The field length is invalid.'),
+    ('E00016', 'The field type is invalid.'),
+    ('E00019', 'The customer taxId or driversLicense information is required.'),
+    ('E00027', 'The transaction was unsuccessful.'),
+    ('E00029', 'Payment information is required.'),
+    ('E00039', 'A duplicate record already exists.'),
+    ('E00040', 'The record cannot be found.'),
+    ('E00041', 'One or more fields must contain a value.'),
+    ('E00042', 'The maximum number of payment profiles for the customer profile has been reached.'),
+    ('E00043', 'The maximum number of shipping addresses for the customer profile has been reached.'),
+    ('E00044', 'Customer Information Manager is not enabled.'),
+    ('E00045', 'The root node does not reference a valid XML namespace.'),
+    ('E00051', 'The original transaction was not issued for this payment profile.'),
+)
+
+
 class ResponseManager(models.Manager):
     def create_from_dict(self, params):
         kwargs = dict(map(lambda x: (str(x[0][2:]), x[1]), params.items()))
@@ -123,3 +155,14 @@ class Response(models.Model):
 
     def __unicode__(self):
         return u"response_code: %s, trans_id: %s, amount: %s, type: %s" % (self.response_code, self.trans_id, self.amount, self.type)
+
+
+class CIMResponse(models.Model):
+    result = models.CharField(max_length=8)
+    result_code = models.CharField(max_length=8, choices=CIM_RESPONSE_CODE_CHOICES)
+    result_text = models.CharField(max_length=1023)
+    transaction_response = models.ForeignKey(Response, blank=True, null=True)
+
+    @property
+    def success(self):
+        return self.result == 'Ok'
