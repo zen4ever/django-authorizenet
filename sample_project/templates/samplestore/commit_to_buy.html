@@ -2,7 +2,7 @@
 
 {% block body %}
 Are you sure you want to buy the following item: {{ item.title }} - {{ item.price }}?
-<form action="." method="POST">
+<form action="." method="POST">{% csrf_token %}
 <input type="submit" name="yes" value="Yes" />
 <input type="submit" name="no" value="No" />
 </form>
