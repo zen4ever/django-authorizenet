@@ -20,7 +20,7 @@ setup(name='django-authorizenet',
           'Framework :: Django',
           'Topic :: Office/Business :: Financial',
       ],
-      lond_description=open(
+      long_description=open(
           os.path.join(os.path.dirname(__file__), 'README.rst'),
       ).read().strip(),
 )
