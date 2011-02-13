@@ -74,7 +74,6 @@ MIDDLEWARE_CLASSES = (
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.redirects.middleware.RedirectFallbackMiddleware',
-    'djangodblog.DBLogMiddleware',
 )
 
 ROOT_URLCONF = 'urls'
@@ -95,8 +94,6 @@ INSTALLED_APPS = (
     'django.contrib.redirects',
     'authorizenet',
     'samplestore',
-    'djangodblog',
-    'django_extensions',
 )
 
 

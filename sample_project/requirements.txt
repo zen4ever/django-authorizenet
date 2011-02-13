@@ -1,3 +1,1 @@
-django==1.1.1
--e svn+http://django-db-log.googlecode.com/svn/trunk/#egg=djangodblog
-django-extensions
+django==1.2.5
