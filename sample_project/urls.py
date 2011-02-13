@@ -6,6 +6,7 @@ admin.autodiscover()
 
 urlpatterns = patterns('',
     # Example:
+    (r'^$', 'django.views.generic.simple.redirect_to', {'url': '/store/'}),
     (r'^authnet/', include('authorizenet.urls')),
     (r'^store/', include('samplestore.urls')),
 
