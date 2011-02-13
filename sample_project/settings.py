@@ -26,7 +26,7 @@ DATABASE_PORT = ''             # Set to empty string for default. Not used with 
 # system time zone.
 TIME_ZONE = 'America/Los_Angeles'
 
-LOGIN_URL = '/admin/'
+LOGIN_REDIRECT_URL = '/store/'
 
 # Language code for this installation. All choices can be found here:
 # http://www.i18nguy.com/unicode/language-identifiers.html

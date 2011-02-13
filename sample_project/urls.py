@@ -7,6 +7,8 @@ admin.autodiscover()
 urlpatterns = patterns('',
     # Example:
     (r'^$', 'django.views.generic.simple.redirect_to', {'url': '/store/'}),
+    url(r'^accounts/login/$', 'django.contrib.auth.views.login', name="auth_login"),
+    url(r'^accounts/logout/$', 'django.contrib.auth.views.logout_then_login', name="auth_logout"),
     (r'^authnet/', include('authorizenet.urls')),
     (r'^store/', include('samplestore.urls')),
 
