@@ -26,7 +26,7 @@ AIM_DEFAULT_DICT = {
     'x_login': settings.AUTHNET_LOGIN_ID,
     'x_tran_key': settings.AUTHNET_TRANSACTION_KEY,
     'x_delim_data': "TRUE",
-    'x_delim_char': "|",
+    'x_delim_char': getattr(settings, 'AUTHNET_DELIM_CHAR', "|"),
     'x_relay_response': "FALSE",
     'x_type': "AUTH_CAPTURE",
     'x_method': "CC"

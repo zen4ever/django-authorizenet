@@ -357,7 +357,7 @@ class GetProfileRequest(BaseRequest):
 
 
 class CreateTransactionRequest(BaseRequest):
-    def __init__(self, profile_id, payment_profile_id, transaction_type, amount, transaction_id=None, delimiter="|"):
+    def __init__(self, profile_id, payment_profile_id, transaction_type, amount, transaction_id=None, delimiter=None):
         """
         Arguments:
         profile_id -- unique gateway-assigned profile identifier
@@ -379,7 +379,10 @@ class CreateTransactionRequest(BaseRequest):
         self.transaction_type = transaction_type
         self.amount = amount
         self.transaction_id = transaction_id
-        self.delimiter = delimiter
+        if delimiter:
+            self.delimiter = delimiter
+        else:
+            self.delimiter = getattr(settings, 'AUTHNET_DELIM_CHAR', "|")
         self.add_transaction_node()
         self.add_extra_options()
 
