@@ -4,6 +4,12 @@ import os.path
 
 PROJECT_ROOT = os.path.abspath(os.path.dirname(__file__))
 
+try:
+    from local_settings import DEBUG
+except ImportError:
+    DEBUG = True
+TEMPLATE_DEBUG = DEBUG
+
 ADMINS = (
    # ('Your name', 'email@example.com'),
 )
@@ -98,5 +104,7 @@ INSTALLED_APPS = (
     'samplestore',
 )
 
-
-from local_settings import *
+try:
+    from local_settings import *
+except ImportError:
+    pass
