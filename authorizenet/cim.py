@@ -1,16 +1,29 @@
-import xml.dom.minidom
-import urllib2
 import re
+import urllib2
+import xml.dom.minidom
 
 from django.conf import settings
+
 from authorizenet import AUTHNET_CIM_URL, AUTHNET_TEST_CIM_URL
+from authorizenet.models import CIMResponse, Response
 from authorizenet.signals import customer_was_created, customer_was_flagged, \
         payment_was_successful, payment_was_flagged
-from authorizenet.models import CIMResponse, Response
 
 
-BILLING_FIELDS = ('firstName', 'lastName', 'company', 'address', 'city', 'state', 'zip', 'country', 'phoneNumber', 'faxNumber')
-CREDIT_CARD_FIELDS = ('cardNumber', 'expirationDate', 'cardCode')
+BILLING_FIELDS = ('firstName',
+                  'lastName',
+                  'company',
+                  'address',
+                  'city',
+                  'state',
+                  'zip',
+                  'country',
+                  'phoneNumber',
+                  'faxNumber')
+
+CREDIT_CARD_FIELDS = ('cardNumber',
+                      'expirationDate',
+                      'cardCode')
 
 
 def extract_form_data(data):
@@ -408,7 +421,8 @@ class CreateTransactionRequest(BaseRequest):
         transaction_type_node.appendChild(payment_profile_node)
 
     def add_extra_options(self):
-        extra_options_node = self.get_text_node("extraOptions", "x_delim_data=TRUE&x_delim_char=%s" % self.delimiter)
+        extra_options_node = self.get_text_node("extraOptions",
+                "x_delim_data=TRUE&x_delim_char=%s" % self.delimiter)
         self.root.appendChild(extra_options_node)
 
     def create_response_object(self):
