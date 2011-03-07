@@ -4,7 +4,8 @@ import re
 
 from django.conf import settings
 from authorizenet import AUTHNET_CIM_URL, AUTHNET_TEST_CIM_URL
-from authorizenet.signals import *
+from authorizenet.signals import customer_was_created, customer_was_flagged, \
+        payment_was_successful, payment_was_flagged
 from authorizenet.models import CIMResponse, Response
 
 
