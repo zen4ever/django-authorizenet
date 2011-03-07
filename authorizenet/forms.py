@@ -1,6 +1,7 @@
 from django import forms
 from django.conf import settings
-from authorizenet.fields import CreditCardField, CreditCardExpiryField, CreditCardCVV2Field, CountryField
+from authorizenet.fields import CreditCardField, CreditCardExpiryField, \
+        CreditCardCVV2Field, CountryField
 
 
 class SIMPaymentForm(forms.Form):
@@ -49,6 +50,7 @@ class AIMPaymentForm(forms.Form):
     card_num = CreditCardField(label="Credit Card Number")
     exp_date = CreditCardExpiryField(label="Expiration Date")
     card_code = CreditCardCVV2Field(label="Card Security Code")
+
 
 class CIMPaymentForm(forms.Form):
     card_number = CreditCardField(label="Credit Card Number")

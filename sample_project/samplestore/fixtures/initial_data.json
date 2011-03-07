@@ -1,0 +1,42 @@
+[
+  {
+    "pk": 1, 
+    "model": "samplestore.customer", 
+    "fields": {
+      "user": 1, 
+      "shipping_same_as_billing": true
+    }
+  }, 
+  {
+    "pk": 1, 
+    "model": "samplestore.item", 
+    "fields": {
+      "price": "300", 
+      "title": "TV"
+    }
+  }, 
+  {
+    "pk": 2, 
+    "model": "samplestore.item", 
+    "fields": {
+      "price": "5", 
+      "title": "T-Shirt"
+    }
+  }, 
+  {
+    "pk": 1, 
+    "model": "samplestore.invoice", 
+    "fields": {
+      "customer": 1, 
+      "item": 1
+    }
+  }, 
+  {
+    "pk": 2, 
+    "model": "samplestore.invoice", 
+    "fields": {
+      "customer": 1, 
+      "item": 1
+    }
+  }
+]

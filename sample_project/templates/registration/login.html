@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+
+{% block body %}
+{% if form.errors %}
+<p>Your username and password didn't match. Please try again.</p>
+{% endif %}
+<form action="." method="POST">{% csrf_token %}
+  {{ form.as_p }}
+  <input type="hidden" name="next" value="{{ next }}" />
+  <p><button type="submit">Login</button></p>
+</form>
+{% endblock %}

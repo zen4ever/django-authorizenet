@@ -1,9 +1,7 @@
 DEBUG = True
-TEMPLATE_DEBUG = DEBUG
 
 AUTHNET_DEBUG = DEBUG
 
 if AUTHNET_DEBUG:
     AUTHNET_LOGIN_ID = "your login id"
     AUTHNET_TRANSACTION_KEY = "your transaction key"
-

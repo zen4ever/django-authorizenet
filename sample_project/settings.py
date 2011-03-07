@@ -4,6 +4,12 @@ import os.path
 
 PROJECT_ROOT = os.path.abspath(os.path.dirname(__file__))
 
+try:
+    from local_settings import DEBUG
+except ImportError:
+    DEBUG = True
+TEMPLATE_DEBUG = DEBUG
+
 ADMINS = (
    # ('Your name', 'email@example.com'),
 )
@@ -12,12 +18,16 @@ AUTH_PROFILE_MODULE = 'samplestore.Customer'
 
 MANAGERS = ADMINS
 
-DATABASE_ENGINE = 'sqlite3'           # 'postgresql_psycopg2', 'postgresql', 'mysql', 'sqlite3' or 'oracle'.
-DATABASE_NAME = 'dev.db'             # Or path to database file if using sqlite3.
-DATABASE_USER = ''             # Not used with sqlite3.
-DATABASE_PASSWORD = ''         # Not used with sqlite3.
-DATABASE_HOST = ''             # Set to empty string for localhost. Not used with sqlite3.
-DATABASE_PORT = ''             # Set to empty string for default. Not used with sqlite3.
+DATABASES = {
+    'default': {
+        'ENGINE':'django.db.backends.sqlite3',    # 'postgresql_psycopg2', 'postgresql', 'mysql', 'sqlite3' or 'oracle'.
+        'NAME':'dev.db', # Or path to database file if using sqlite3.
+        'USER':'',             # Not used with sqlite3.
+        'PASSWORD':'',         # Not used with sqlite3.
+        'HOST':'',             # Set to empty string for localhost. Not used with sqlite3.
+        'PORT':''             # Set to empty string for default. Not used with sqlite3.
+    }
+}
 
 # Local time zone for this installation. Choices can be found here:
 # http://en.wikipedia.org/wiki/List_of_tz_zones_by_name
@@ -26,7 +36,7 @@ DATABASE_PORT = ''             # Set to empty string for default. Not used with 
 # system time zone.
 TIME_ZONE = 'America/Los_Angeles'
 
-LOGIN_URL = '/admin/'
+LOGIN_REDIRECT_URL = '/store/'
 
 # Language code for this installation. All choices can be found here:
 # http://www.i18nguy.com/unicode/language-identifiers.html
@@ -66,15 +76,16 @@ TEMPLATE_CONTEXT_PROCESSORS = (
     "django.core.context_processors.auth",
     "django.core.context_processors.debug",
     "django.core.context_processors.request",
-    "django.core.context_processors.media"
+    "django.core.context_processors.media",
+    "django.core.context_processors.csrf"
     )
 
 MIDDLEWARE_CLASSES = (
     'django.middleware.common.CommonMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
+    'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.redirects.middleware.RedirectFallbackMiddleware',
-    'djangodblog.DBLogMiddleware',
 )
 
 ROOT_URLCONF = 'urls'
@@ -95,9 +106,9 @@ INSTALLED_APPS = (
     'django.contrib.redirects',
     'authorizenet',
     'samplestore',
-    'djangodblog',
-    'django_extensions',
 )
 
-
-from local_settings import *
+try:
+    from local_settings import *
+except ImportError:
+    pass
