@@ -1,3 +1,9 @@
+try:
+    import hashlib
+except ImportError:
+    import md5 as hashlib
+
+from django.conf import settings
 from django.views.generic.simple import direct_to_template
 from django.views.decorators.csrf import csrf_exempt
 
@@ -10,10 +16,24 @@ from authorizenet.utils import process_payment, combine_form_data
 @csrf_exempt
 def sim_payment(request):
     response = Response.objects.create_from_dict(request.POST)
-    if response.is_approved:
+    MD5_HASH = getattr(settings, "AUTHNET_MD5_HASH", "")
+    hash_is_valid = True
+
+    #if MD5-Hash value is provided, use it to validate response
+    if MD5_HASH:
+        hash_is_valid = False
+        hash_value = hashlib.md5(''.join([MD5_HASH,
+                                          settings.AUTHNET_LOGIN_ID,
+                                          response.trans_id,
+                                          response.amount])).hexdigest()
+
+        hash_is_valid = hash_value.upper() == response.MD5_Hash
+
+    if response.is_approved and hash_is_valid:
         payment_was_successful.send(sender=response)
     else:
         payment_was_flagged.send(sender=response)
+
     return direct_to_template(request, 'authorizenet/sim_payment.html')
 
 
