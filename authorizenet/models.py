@@ -147,6 +147,9 @@ class Response(models.Model):
 
     test_request = models.CharField(max_length=10, default="FALSE", blank=True)
 
+    card_type = models.CharField(max_length=10, default="", blank=True)
+    account_number = models.CharField(max_length=10, default="", blank=True)
+
     objects = ResponseManager()
 
     @property
