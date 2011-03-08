@@ -1,4 +1,5 @@
 from django.views.generic.simple import direct_to_template
+from django.views.decorators.csrf import csrf_exempt
 
 from authorizenet.forms import AIMPaymentForm, BillingAddressForm
 from authorizenet.models import Response
@@ -6,6 +7,7 @@ from authorizenet.signals import payment_was_successful, payment_was_flagged
 from authorizenet.utils import process_payment, combine_form_data
 
 
+@csrf_exempt
 def sim_payment(request):
     response = Response.objects.create_from_dict(request.POST)
     if response.is_approved:
