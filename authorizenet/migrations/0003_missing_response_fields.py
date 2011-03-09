@@ -9,66 +9,38 @@ class Migration(SchemaMigration):
 
     def forwards(self, orm):
 
-        # Adding model 'Response'
-        db.create_table('authorizenet_response', (
-            ('id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
-            ('response_code', self.gf('django.db.models.fields.CharField')(max_length=2)),
-            ('response_subcode', self.gf('django.db.models.fields.CharField')(max_length=10)),
-            ('response_reason_code', self.gf('django.db.models.fields.CharField')(max_length=15)),
-            ('response_reason_text', self.gf('django.db.models.fields.TextField')()),
-            ('auth_code', self.gf('django.db.models.fields.CharField')(max_length=10)),
-            ('avs_code', self.gf('django.db.models.fields.CharField')(max_length=10)),
-            ('trans_id', self.gf('django.db.models.fields.CharField')(max_length=255, db_index=True)),
-            ('invoice_num', self.gf('django.db.models.fields.CharField')(max_length=20, blank=True)),
-            ('description', self.gf('django.db.models.fields.CharField')(max_length=255)),
-            ('amount', self.gf('django.db.models.fields.CharField')(max_length=16)),
-            ('method', self.gf('django.db.models.fields.CharField')(max_length=10)),
-            ('type', self.gf('django.db.models.fields.CharField')(max_length=20, db_index=True)),
-            ('cust_id', self.gf('django.db.models.fields.CharField')(max_length=20)),
-            ('first_name', self.gf('django.db.models.fields.CharField')(max_length=50)),
-            ('last_name', self.gf('django.db.models.fields.CharField')(max_length=50)),
-            ('company', self.gf('django.db.models.fields.CharField')(max_length=50)),
-            ('address', self.gf('django.db.models.fields.CharField')(max_length=60)),
-            ('city', self.gf('django.db.models.fields.CharField')(max_length=40)),
-            ('state', self.gf('django.db.models.fields.CharField')(max_length=40)),
-            ('zip', self.gf('django.db.models.fields.CharField')(max_length=20)),
-            ('country', self.gf('django.db.models.fields.CharField')(max_length=60)),
-            ('phone', self.gf('django.db.models.fields.CharField')(max_length=25)),
-            ('fax', self.gf('django.db.models.fields.CharField')(max_length=25)),
-            ('email', self.gf('django.db.models.fields.CharField')(max_length=255)),
-            ('ship_to_first_name', self.gf('django.db.models.fields.CharField')(max_length=50, blank=True)),
-            ('ship_to_last_name', self.gf('django.db.models.fields.CharField')(max_length=50, blank=True)),
-            ('ship_to_company', self.gf('django.db.models.fields.CharField')(max_length=50, blank=True)),
-            ('ship_to_address', self.gf('django.db.models.fields.CharField')(max_length=60, blank=True)),
-            ('ship_to_city', self.gf('django.db.models.fields.CharField')(max_length=40, blank=True)),
-            ('ship_to_state', self.gf('django.db.models.fields.CharField')(max_length=40, blank=True)),
-            ('ship_to_zip', self.gf('django.db.models.fields.CharField')(max_length=20, blank=True)),
-            ('ship_to_country', self.gf('django.db.models.fields.CharField')(max_length=60, blank=True)),
-            ('tax', self.gf('django.db.models.fields.CharField')(max_length=16, blank=True)),
-            ('duty', self.gf('django.db.models.fields.CharField')(max_length=16, blank=True)),
-            ('freight', self.gf('django.db.models.fields.CharField')(max_length=16, blank=True)),
-            ('tax_exempt', self.gf('django.db.models.fields.CharField')(max_length=16, blank=True)),
-            ('po_num', self.gf('django.db.models.fields.CharField')(max_length=25, blank=True)),
-            ('MD5_Hash', self.gf('django.db.models.fields.CharField')(max_length=255)),
-            ('cvv2_resp_code', self.gf('django.db.models.fields.CharField')(max_length=2, blank=True)),
-            ('cavv_response', self.gf('django.db.models.fields.CharField')(max_length=2, blank=True)),
-            ('test_request', self.gf('django.db.models.fields.CharField')(default='FALSE', max_length=10, blank=True)),
-        ))
-        db.send_create_signal('authorizenet', ['Response'])
+        # Adding field 'Response.card_type'
+        db.add_column('authorizenet_response', 'card_type', self.gf('django.db.models.fields.CharField')(default='', max_length=10, blank=True), keep_default=False)
+
+        # Adding field 'Response.account_number'
+        db.add_column('authorizenet_response', 'account_number', self.gf('django.db.models.fields.CharField')(default='', max_length=10, blank=True), keep_default=False)
 
     def backwards(self, orm):
 
-        # Deleting model 'Response'
-        db.delete_table('authorizenet_response')
+        # Deleting field 'Response.card_type'
+        db.delete_column('authorizenet_response', 'card_type')
+
+        # Deleting field 'Response.account_number'
+        db.delete_column('authorizenet_response', 'account_number')
 
     models = {
+        'authorizenet.cimresponse': {
+            'Meta': {'object_name': 'CIMResponse'},
+            'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
+            'result': ('django.db.models.fields.CharField', [], {'max_length': '8'}),
+            'result_code': ('django.db.models.fields.CharField', [], {'max_length': '8'}),
+            'result_text': ('django.db.models.fields.CharField', [], {'max_length': '1023'}),
+            'transaction_response': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['authorizenet.Response']", 'null': 'True', 'blank': 'True'})
+        },
         'authorizenet.response': {
             'MD5_Hash': ('django.db.models.fields.CharField', [], {'max_length': '255'}),
             'Meta': {'object_name': 'Response'},
+            'account_number': ('django.db.models.fields.CharField', [], {'default': "''", 'max_length': '10', 'blank': 'True'}),
             'address': ('django.db.models.fields.CharField', [], {'max_length': '60'}),
             'amount': ('django.db.models.fields.CharField', [], {'max_length': '16'}),
             'auth_code': ('django.db.models.fields.CharField', [], {'max_length': '10'}),
             'avs_code': ('django.db.models.fields.CharField', [], {'max_length': '10'}),
+            'card_type': ('django.db.models.fields.CharField', [], {'default': "''", 'max_length': '10', 'blank': 'True'}),
             'cavv_response': ('django.db.models.fields.CharField', [], {'max_length': '2', 'blank': 'True'}),
             'city': ('django.db.models.fields.CharField', [], {'max_length': '40'}),
             'company': ('django.db.models.fields.CharField', [], {'max_length': '50'}),

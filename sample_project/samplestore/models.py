@@ -1,7 +1,10 @@
 from django.db import models
+from django.db.models.signals import post_save
+
 from django.contrib.auth.models import User
 from django.contrib.localflavor.us.models import PhoneNumberField, USStateField
-from django.db.models.signals import post_save
+
+from authorizenet.signals import payment_was_successful, payment_was_flagged
 
 
 ADDRESS_CHOICES = (
@@ -58,3 +61,17 @@ def create_customer_profile(sender, instance=None, **kwargs):
 
 
 post_save.connect(create_customer_profile, sender=User)
+
+
+def successfull_payment(sender, **kwargs):
+    response = sender
+    # do something with the response
+
+
+def flagged_payment(sender, **kwargs):
+    response = sender
+    # do something with the response
+
+
+payment_was_successful.connect(successfull_payment)
+payment_was_flagged.connect(flagged_payment)

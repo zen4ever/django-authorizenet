@@ -36,8 +36,10 @@ class CreditCard(object):
 
     def is_number(self):
         """Returns True if there is at least one digit in number."""
-        self.number = "".join([c for c in self.number if c in digits])
-        return self.number.isdigit()
+        if isinstance(self.number, basestring):
+            self.number = "".join([c for c in self.number if c in digits])
+            return self.number.isdigit()
+        return False
 
     def is_mod10(self):
         """Returns True if number is valid according to mod10."""
@@ -62,6 +64,8 @@ class CreditCard(object):
 
     def verify(self, allow_test):
         """Returns the card type if valid else None."""
-        if self.is_number() and (not self.is_test() or allow_test) and self.is_mod10():
+        if self.is_number() and \
+                (not self.is_test() or allow_test) \
+                and self.is_mod10():
             return self.get_type()
         return None

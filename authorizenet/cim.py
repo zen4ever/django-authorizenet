@@ -48,8 +48,9 @@ def create_form_data(data):
 
 def add_profile(customer_id, payment_form_data, billing_form_data):
     """
-    Add a customer profile with a single payment profile and return a tuple of
-    the CIMResponse, profile ID, and single-element list of payment profile IDs.
+    Add a customer profile with a single payment profile
+    and return a tuple of the CIMResponse, profile ID,
+    and single-element list of payment profile IDs.
 
     Arguments:
     customer_id -- unique merchant-assigned customer identifier
@@ -58,7 +59,8 @@ def add_profile(customer_id, payment_form_data, billing_form_data):
     """
     payment_data = extract_form_data(payment_form_data)
     billing_data = extract_form_data(billing_form_data)
-    payment_data['expirationDate'] = payment_data['expirationDate'].strftime('%Y-%m')
+    payment_data['expirationDate'] = \
+            payment_data['expirationDate'].strftime('%Y-%m')
     helper = CreateProfileRequest(customer_id, billing_data, payment_data)
     response = helper.get_response()
     if response.success:
@@ -76,7 +78,10 @@ def add_profile(customer_id, payment_form_data, billing_form_data):
     return response, profile_id, payment_profile_ids
 
 
-def update_payment_profile(profile_id, payment_profile_id, payment_form_data, billing_form_data):
+def update_payment_profile(profile_id,
+                           payment_profile_id,
+                           payment_form_data,
+                           billing_form_data):
     """
     Update a customer payment profile and return the CIMResponse.
 
@@ -88,8 +93,12 @@ def update_payment_profile(profile_id, payment_profile_id, payment_form_data, bi
     """
     payment_data = extract_form_data(payment_form_data)
     billing_data = extract_form_data(billing_form_data)
-    payment_data['expirationDate'] = payment_data['expirationDate'].strftime('%Y-%m')
-    helper = UpdatePaymentProfileRequest(profile_id, payment_profile_id, billing_data, payment_data)
+    payment_data['expirationDate'] = \
+            payment_data['expirationDate'].strftime('%Y-%m')
+    helper = UpdatePaymentProfileRequest(profile_id,
+                                         payment_profile_id,
+                                         billing_data,
+                                         payment_data)
     response = helper.get_response()
     return response
 
@@ -106,8 +115,11 @@ def create_payment_profile(profile_id, payment_form_data, billing_form_data):
     """
     payment_data = extract_form_data(payment_form_data)
     billing_data = extract_form_data(billing_form_data)
-    payment_data['expirationDate'] = payment_data['expirationDate'].strftime('%Y-%m')
-    helper = CreatePaymentProfileRequest(profile_id, billing_data, payment_data)
+    payment_data['expirationDate'] = \
+            payment_data['expirationDate'].strftime('%Y-%m')
+    helper = CreatePaymentProfileRequest(profile_id,
+                                         billing_data,
+                                         payment_data)
     response = helper.get_response()
     if response.success:
         payment_profile_id = helper.payment_profile_id
@@ -189,7 +201,8 @@ class BaseRequest(object):
         self.document = doc
         authentication = doc.createElement("merchantAuthentication")
         name = self.get_text_node("name", settings.AUTHNET_LOGIN_ID)
-        key = self.get_text_node("transactionKey", settings.AUTHNET_TRANSACTION_KEY)
+        key = self.get_text_node("transactionKey",
+                                 settings.AUTHNET_TRANSACTION_KEY)
         authentication.appendChild(name)
         authentication.appendChild(key)
         root.appendChild(authentication)
@@ -201,14 +214,19 @@ class BaseRequest(object):
         Submit request to Authorize.NET CIM server and return the resulting
         CIMResponse
         """
-        request = urllib2.Request(self.endpoint, self.document.toxml(), {'Content-Type': 'text/xml'})
+        request = urllib2.Request(self.endpoint,
+                                  self.document.toxml(),
+                                  {'Content-Type': 'text/xml'})
         raw_response = urllib2.urlopen(request)
         response_xml = xml.dom.minidom.parse(raw_response)
         self.process_response(response_xml)
         return self.create_response_object()
 
     def get_text_node(self, node_name, text):
-        """Create a text-only XML node called node_name with contents of text"""
+        """
+        Create a text-only XML node called node_name
+        with contents of text
+        """
         node = self.document.createElement(node_name)
         node.appendChild(self.document.createTextNode(str(text)))
         return node
@@ -236,7 +254,10 @@ class BaseRequest(object):
 
 
 class BasePaymentProfileRequest(BaseRequest):
-    def get_payment_profile_node(self, billing_data, credit_card_data, node_name="paymentProfile"):
+    def get_payment_profile_node(self,
+                                 billing_data,
+                                 credit_card_data,
+                                 node_name="paymentProfile"):
         payment_profile = self.document.createElement(node_name)
 
         if billing_data:
@@ -263,11 +284,14 @@ class BasePaymentProfileRequest(BaseRequest):
 
 class CreateProfileRequest(BasePaymentProfileRequest):
     def __init__(self, customer_id, billing_data=None, credit_card_data=None):
-        super(CreateProfileRequest, self).__init__("createCustomerProfileRequest")
+        super(CreateProfileRequest,
+              self).__init__("createCustomerProfileRequest")
         self.customer_id = customer_id
         profile_node = self.get_profile_node()
         if credit_card_data:
-            payment_profiles = self.get_payment_profile_node(billing_data, credit_card_data, "paymentProfiles")
+            payment_profiles = self.get_payment_profile_node(billing_data,
+                                                             credit_card_data,
+                                                             "paymentProfiles")
             profile_node.appendChild(payment_profiles)
         self.root.appendChild(profile_node)
 
@@ -292,20 +316,32 @@ class CreateProfileRequest(BasePaymentProfileRequest):
 
 
 class UpdatePaymentProfileRequest(BasePaymentProfileRequest):
-    def __init__(self, profile_id, payment_profile_id, billing_data=None, credit_card_data=None):
-        super(UpdatePaymentProfileRequest, self).__init__("updateCustomerPaymentProfileRequest")
+    def __init__(self,
+                 profile_id,
+                 payment_profile_id,
+                 billing_data=None,
+                 credit_card_data=None):
+        super(UpdatePaymentProfileRequest,
+                self).__init__("updateCustomerPaymentProfileRequest")
         profile_id_node = self.get_text_node("customerProfileId", profile_id)
-        payment_profile = self.get_payment_profile_node(billing_data, credit_card_data, "paymentProfile")
-        payment_profile.appendChild(self.get_text_node("customerPaymentProfileId", payment_profile_id))
+        payment_profile = self.get_payment_profile_node(billing_data,
+                                                        credit_card_data,
+                                                        "paymentProfile")
+        payment_profile.appendChild(
+                self.get_text_node("customerPaymentProfileId",
+                                   payment_profile_id))
         self.root.appendChild(profile_id_node)
         self.root.appendChild(payment_profile)
 
 
 class CreatePaymentProfileRequest(BasePaymentProfileRequest):
     def __init__(self, profile_id, billing_data=None, credit_card_data=None):
-        super(CreatePaymentProfileRequest, self).__init__("createCustomerPaymentProfileRequest")
+        super(CreatePaymentProfileRequest,
+                self).__init__("createCustomerPaymentProfileRequest")
         profile_id_node = self.get_text_node("customerProfileId", profile_id)
-        payment_profile = self.get_payment_profile_node(billing_data, credit_card_data, "paymentProfile")
+        payment_profile = self.get_payment_profile_node(billing_data,
+                                                        credit_card_data,
+                                                        "paymentProfile")
         self.root.appendChild(profile_id_node)
         self.root.appendChild(payment_profile)
 
@@ -319,9 +355,12 @@ class CreatePaymentProfileRequest(BasePaymentProfileRequest):
 
 class DeletePaymentProfileRequest(BasePaymentProfileRequest):
     def __init__(self, profile_id, payment_profile_id):
-        super(DeletePaymentProfileRequest, self).__init__("deleteCustomerPaymentProfileRequest")
+        super(DeletePaymentProfileRequest,
+                self).__init__("deleteCustomerPaymentProfileRequest")
         profile_id_node = self.get_text_node("customerProfileId", profile_id)
-        payment_profile_id_node = self.get_text_node("customerPaymentProfileId", payment_profile_id)
+        payment_profile_id_node = self.get_text_node(
+                "customerPaymentProfileId",
+                payment_profile_id)
         self.root.appendChild(profile_id_node)
         self.root.appendChild(payment_profile_id_node)
 
@@ -346,7 +385,9 @@ class GetProfileRequest(BaseRequest):
         return create_form_data(self.process_children(node, BILLING_FIELDS))
 
     def extract_credit_card_data(self, node):
-        return create_form_data(self.process_children(node, CREDIT_CARD_FIELDS))
+        return create_form_data(
+                self.process_children(node,
+                CREDIT_CARD_FIELDS))
 
     def extract_payment_profiles_data(self, node):
         data = {}
@@ -354,7 +395,8 @@ class GetProfileRequest(BaseRequest):
             if e.localName == 'billTo':
                 data['billing'] = self.extract_billing_data(e)
             if e.localName == 'payment':
-                data['credit_card'] = self.extract_credit_card_data(e.childNodes[0])
+                data['credit_card'] = self.extract_credit_card_data(
+                        e.childNodes[0])
             if e.localName == 'customerPaymentProfileId':
                 data['payment_profile_id'] = e.childNodes[0].nodeValue
         return data
@@ -367,20 +409,29 @@ class GetProfileRequest(BaseRequest):
             if e.localName == 'profile':
                 for f in e.childNodes:
                     if f.localName == 'paymentProfiles':
-                        self.payment_profiles.append(self.extract_payment_profiles_data(f))
+                        self.payment_profiles.append(
+                                self.extract_payment_profiles_data(f))
 
 
 class CreateTransactionRequest(BaseRequest):
-    def __init__(self, profile_id, payment_profile_id, transaction_type, amount, transaction_id=None, delimiter=None):
+    def __init__(self,
+                 profile_id,
+                 payment_profile_id,
+                 transaction_type,
+                 amount,
+                 transaction_id=None,
+                 delimiter=None):
         """
         Arguments:
         profile_id -- unique gateway-assigned profile identifier
-        payment_profile_id -- unique gateway-assigned payment profile identifier
+        payment_profile_id -- unique gateway-assigned payment profile
+                              identifier
         transaction_type -- One of the transaction types listed below.
         amount -- Dollar amount of transaction
 
         Keyword Arguments:
-        transaction_id -- Required by PriorAuthCapture, Refund, and Void transactions
+        transaction_id -- Required by PriorAuthCapture, Refund,
+                          and Void transactions
         delimiter -- Delimiter used for transaction response data
 
         Accepted transaction types:
@@ -402,7 +453,8 @@ class CreateTransactionRequest(BaseRequest):
 
     def add_transaction_node(self):
         transaction_node = self.document.createElement("transaction")
-        type_node = self.document.createElement("profileTrans%s" % self.transaction_type)
+        type_node = self.document.createElement("profileTrans%s" %
+                self.transaction_type)
 
         amount_node = self.get_text_node("amount", self.amount)
         type_node.appendChild(amount_node)
@@ -417,7 +469,8 @@ class CreateTransactionRequest(BaseRequest):
         profile_node = self.get_text_node("customerProfileId", self.profile_id)
         transaction_type_node.appendChild(profile_node)
 
-        payment_profile_node = self.get_text_node("customerPaymentProfileId", self.payment_profile_id)
+        payment_profile_node = self.get_text_node("customerPaymentProfileId",
+                                                  self.payment_profile_id)
         transaction_type_node.appendChild(payment_profile_node)
 
     def add_extra_options(self):
@@ -427,7 +480,8 @@ class CreateTransactionRequest(BaseRequest):
 
     def create_response_object(self):
         try:
-            response = Response.objects.create_from_list(self.transaction_result)
+            response = Response.objects.create_from_list(
+                    self.transaction_result)
         except AttributeError:
             response = None
         return CIMResponse.objects.create(result=self.result,
@@ -440,4 +494,5 @@ class CreateTransactionRequest(BaseRequest):
             if e.localName == 'messages':
                 self.process_message_node(e)
             if e.localName == 'directResponse':
-                self.transaction_result = e.childNodes[0].nodeValue.split(self.delimiter)
+                self.transaction_result = \
+                        e.childNodes[0].nodeValue.split(self.delimiter)
