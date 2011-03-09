@@ -62,7 +62,8 @@ def combine_form_data(*args):
 
 def capture_transaction(response, extra_data=None):
     if response.type.lower() != 'auth_only':
-        raise ImproperlyConfigured("You can capture only transactions with AUTH_ONLY type")
+        raise ImproperlyConfigured(
+                "You can capture only transactions with AUTH_ONLY type")
     if extra_data is None:
         extra_data = {}
     data = dict(extra_data)

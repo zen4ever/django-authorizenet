@@ -3,8 +3,8 @@
 from datetime import date
 from calendar import monthrange
 
-from django.conf import settings
 from django import forms
+from django.conf import settings
 from django.utils.translation import ugettext as _
 
 from authorizenet.creditcard import verify_credit_card
@@ -23,7 +23,8 @@ class CreditCardField(forms.CharField):
         Raises a ValidationError if the card is not valid
         and stashes card type.
         """
-        self.card_type = verify_credit_card(value, allow_test=settings.AUTHNET_DEBUG)
+        self.card_type = verify_credit_card(value,
+                                            allow_test=settings.AUTHNET_DEBUG)
         if self.card_type is None:
             raise forms.ValidationError("Invalid credit card number.")
         return value

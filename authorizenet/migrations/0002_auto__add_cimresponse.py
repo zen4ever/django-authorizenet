@@ -4,10 +4,11 @@ from south.db import db
 from south.v2 import SchemaMigration
 from django.db import models
 
+
 class Migration(SchemaMigration):
 
     def forwards(self, orm):
-        
+
         # Adding model 'CIMResponse'
         db.create_table('authorizenet_cimresponse', (
             ('id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
@@ -18,12 +19,10 @@ class Migration(SchemaMigration):
         ))
         db.send_create_signal('authorizenet', ['CIMResponse'])
 
-
     def backwards(self, orm):
-        
+
         # Deleting model 'CIMResponse'
         db.delete_table('authorizenet_cimresponse')
-
 
     models = {
         'authorizenet.cimresponse': {

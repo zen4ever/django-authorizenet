@@ -1,7 +1,9 @@
+import re
 import urllib
 import urllib2
-import re
+
 from django.conf import settings
+
 from authorizenet import AUTHNET_POST_URL, AUTHNET_TEST_POST_URL
 
 
@@ -23,7 +25,9 @@ class AIMPaymentHelper(object):
                 final_data[k] = unicode(v).replace(c, "\\%s" % c)
         request_string = urllib.urlencode(final_data)
         response = urllib2.urlopen(self.endpoint, request_string).read()
-        # Split response by delimiter, unescaping delimiter characters in fields
+        # Split response by delimiter,
+        # unescaping delimiter characters in fields
         response_list = re.split("(?<!\\\\)\%s" % c, response)
-        response_list = map(lambda s: s.replace("\\%s" % c, c), response_list)
+        response_list = map(lambda s: s.replace("\\%s" % c, c),
+                            response_list)
         return response_list

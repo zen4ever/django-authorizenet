@@ -53,10 +53,14 @@ CAVV_RESPONSE_CODE_CHOICES = (
     ('4', 'CAVV validation could not be performed; issuer system error'),
     ('5', 'Reserved for future use'),
     ('6', 'Reserved for future use'),
-    ('7', 'CAVV attempt - failed validation - issuer available (U.S.-issued card/non-U.S acquirer)'),
-    ('8', 'CAVV attempt - passed validation - issuer available (U.S.-issued card/non-U.S. acquirer)'),
-    ('9', 'CAVV attempt - failed validation - issuer unavailable (U.S.-issued card/non-U.S. acquirer)'),
-    ('A', 'CAVV attempt - passed validation - issuer unavailable (U.S.-issued card/non-U.S. acquirer)'),
+    ('7', 'CAVV attempt - failed validation - '
+          'issuer available (U.S.-issued card/non-U.S acquirer)'),
+    ('8', 'CAVV attempt - passed validation - '
+          'issuer available (U.S.-issued card/non-U.S. acquirer)'),
+    ('9', 'CAVV attempt - failed validation - '
+          'issuer unavailable (U.S.-issued card/non-U.S. acquirer)'),
+    ('A', 'CAVV attempt - passed validation - '
+          'issuer unavailable (U.S.-issued card/non-U.S. acquirer)'),
     ('B', 'CAVV passed validation, information only, no liability shift'),
 )
 
@@ -68,28 +72,37 @@ CIM_RESPONSE_CODE_CHOICES = (
     ('E00002', 'The content-type specified is not supported.'),
     ('E00003', 'An error occurred while parsing the XML request.'),
     ('E00004', 'The name of the requested API method is invalid.'),
-    ('E00005', 'The merchantAuthentication.transactionKey is invalid or not present.'),
+    ('E00005', 'The merchantAuthentication.transactionKey '
+               'is invalid or not present.'),
     ('E00006', 'The merchantAuthentication.name is invalid or not present.'),
-    ('E00007', 'User authentication failed due to invalid authentication values.'),
-    ('E00008', 'User authentication failed. The payment gateway account or user is inactive.'),
-    ('E00009', 'The payment gateway account is in Test Mode. The request cannot be processed.'),
-    ('E00010', 'User authentication failed. You do not have the appropriate permissions.'),
+    ('E00007', 'User authentication failed '
+               'due to invalid authentication values.'),
+    ('E00008', 'User authentication failed. The payment gateway account or '
+               'user is inactive.'),
+    ('E00009', 'The payment gateway account is in Test Mode. '
+               'The request cannot be processed.'),
+    ('E00010', 'User authentication failed. '
+               'You do not have the appropriate permissions.'),
     ('E00011', 'Access denied. You do not have the appropriate permissions.'),
     ('E00013', 'The field is invalid.'),
     ('E00014', 'A required field is not present.'),
     ('E00015', 'The field length is invalid.'),
     ('E00016', 'The field type is invalid.'),
-    ('E00019', 'The customer taxId or driversLicense information is required.'),
+    ('E00019', 'The customer taxId or driversLicense information '
+               'is required.'),
     ('E00027', 'The transaction was unsuccessful.'),
     ('E00029', 'Payment information is required.'),
     ('E00039', 'A duplicate record already exists.'),
     ('E00040', 'The record cannot be found.'),
     ('E00041', 'One or more fields must contain a value.'),
-    ('E00042', 'The maximum number of payment profiles for the customer profile has been reached.'),
-    ('E00043', 'The maximum number of shipping addresses for the customer profile has been reached.'),
+    ('E00042', 'The maximum number of payment profiles '
+               'for the customer profile has been reached.'),
+    ('E00043', 'The maximum number of shipping addresses '
+               'for the customer profile has been reached.'),
     ('E00044', 'Customer Information Manager is not enabled.'),
     ('E00045', 'The root node does not reference a valid XML namespace.'),
-    ('E00051', 'The original transaction was not issued for this payment profile.'),
+    ('E00051', 'The original transaction was not issued '
+               'for this payment profile.'),
 )
 
 
@@ -99,7 +112,8 @@ class ResponseManager(models.Manager):
         return self.create(**kwargs)
 
     def create_from_list(self, items):
-        kwargs = dict(zip(map(lambda x: x.name, Response._meta.fields)[1:], items))
+        kwargs = dict(zip(map(lambda x: x.name,
+                              Response._meta.fields)[1:], items))
         return self.create(**kwargs)
 
 
@@ -109,13 +123,16 @@ class Response(models.Model):
     response_reason_code = models.CharField(max_length=15)
     response_reason_text = models.TextField()
     auth_code = models.CharField(max_length=10)
-    avs_code = models.CharField(max_length=10, choices=AVS_RESPONSE_CODE_CHOICES)
+    avs_code = models.CharField(max_length=10,
+                                choices=AVS_RESPONSE_CODE_CHOICES)
     trans_id = models.CharField(max_length=255, db_index=True)
     invoice_num = models.CharField(max_length=20, blank=True)
     description = models.CharField(max_length=255)
     amount = models.CharField(max_length=16)
     method = models.CharField(max_length=10, choices=METHOD_CHOICES)
-    type = models.CharField(max_length=20, choices=TYPE_CHOICES, db_index=True)
+    type = models.CharField(max_length=20,
+                            choices=TYPE_CHOICES,
+                            db_index=True)
     cust_id = models.CharField(max_length=20)
     first_name = models.CharField(max_length=50)
     last_name = models.CharField(max_length=50)
@@ -142,8 +159,12 @@ class Response(models.Model):
     tax_exempt = models.CharField(max_length=16, blank=True)
     po_num = models.CharField(max_length=25, blank=True)
     MD5_Hash = models.CharField(max_length=255)
-    cvv2_resp_code = models.CharField(max_length=2, choices=CVV2_RESPONSE_CODE_CHOICES, blank=True)
-    cavv_response = models.CharField(max_length=2, choices=CAVV_RESPONSE_CODE_CHOICES, blank=True)
+    cvv2_resp_code = models.CharField(max_length=2,
+                                      choices=CVV2_RESPONSE_CODE_CHOICES,
+                                      blank=True)
+    cavv_response = models.CharField(max_length=2,
+                                     choices=CAVV_RESPONSE_CODE_CHOICES,
+                                     blank=True)
 
     test_request = models.CharField(max_length=10, default="FALSE", blank=True)
 
@@ -157,12 +178,14 @@ class Response(models.Model):
         return self.response_code == '1'
 
     def __unicode__(self):
-        return u"response_code: %s, trans_id: %s, amount: %s, type: %s" % (self.response_code, self.trans_id, self.amount, self.type)
+        return u"response_code: %s, trans_id: %s, amount: %s, type: %s" % \
+                (self.response_code, self.trans_id, self.amount, self.type)
 
 
 class CIMResponse(models.Model):
     result = models.CharField(max_length=8)
-    result_code = models.CharField(max_length=8, choices=CIM_RESPONSE_CODE_CHOICES)
+    result_code = models.CharField(max_length=8,
+                                   choices=CIM_RESPONSE_CODE_CHOICES)
     result_text = models.CharField(max_length=1023)
     transaction_response = models.ForeignKey(Response, blank=True, null=True)
 

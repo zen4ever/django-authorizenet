@@ -64,6 +64,8 @@ class CreditCard(object):
 
     def verify(self, allow_test):
         """Returns the card type if valid else None."""
-        if self.is_number() and (not self.is_test() or allow_test) and self.is_mod10():
+        if self.is_number() and \
+                (not self.is_test() or allow_test) \
+                and self.is_mod10():
             return self.get_type()
         return None
