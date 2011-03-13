@@ -170,6 +170,7 @@ class Response(models.Model):
 
     card_type = models.CharField(max_length=10, default="", blank=True)
     account_number = models.CharField(max_length=10, default="", blank=True)
+    created = models.DateTimeField(auto_now_add=True, null=True)
 
     objects = ResponseManager()
 
@@ -186,8 +187,9 @@ class CIMResponse(models.Model):
     result = models.CharField(max_length=8)
     result_code = models.CharField(max_length=8,
                                    choices=CIM_RESPONSE_CODE_CHOICES)
-    result_text = models.CharField(max_length=1023)
+    result_text = models.TextField()
     transaction_response = models.ForeignKey(Response, blank=True, null=True)
+    created = models.DateTimeField(auto_now_add=True, null=True)
 
     @property
     def success(self):
