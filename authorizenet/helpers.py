@@ -28,6 +28,6 @@ class AIMPaymentHelper(object):
         # Split response by delimiter,
         # unescaping delimiter characters in fields
         response_list = re.split("(?<!\\\\)\%s" % c, response)
-        response_list = map(lambda s: s.replace("\\%s" % c, c).decode('utf-8'),
+        response_list = map(lambda s: s.replace("\\%s" % c, c),
                             response_list)
         return response_list
