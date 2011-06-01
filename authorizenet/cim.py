@@ -420,7 +420,8 @@ class CreateTransactionRequest(BaseRequest):
                  transaction_type,
                  amount,
                  transaction_id=None,
-                 delimiter=None):
+                 delimiter=None,
+                 order_info=None):
         """
         Arguments:
         profile_id -- unique gateway-assigned profile identifier
@@ -433,6 +434,8 @@ class CreateTransactionRequest(BaseRequest):
         transaction_id -- Required by PriorAuthCapture, Refund,
                           and Void transactions
         delimiter -- Delimiter used for transaction response data
+        order_info -- a dict with optional order parameters `invoice_number`,
+                      `description`, and `purchase_order_number` as keys.
 
         Accepted transaction types:
         AuthOnly, AuthCapture, CaptureOnly, PriorAuthCapture, Refund, Void
@@ -450,6 +453,8 @@ class CreateTransactionRequest(BaseRequest):
             self.delimiter = getattr(settings, 'AUTHNET_DELIM_CHAR', "|")
         self.add_transaction_node()
         self.add_extra_options()
+        if order_info:
+            self.add_order_info(**order_info)
 
     def add_transaction_node(self):
         transaction_node = self.document.createElement("transaction")
@@ -464,6 +469,7 @@ class CreateTransactionRequest(BaseRequest):
             trans_id_node = self.get_text_node("transId", self.transaction_id)
             type_node.appendChild(trans_id_node)
         self.root.appendChild(transaction_node)
+        self.transaction_node = transaction_node
 
     def add_profile_ids(self, transaction_type_node):
         profile_node = self.get_text_node("customerProfileId", self.profile_id)
@@ -472,6 +478,21 @@ class CreateTransactionRequest(BaseRequest):
         payment_profile_node = self.get_text_node("customerPaymentProfileId",
                                                   self.payment_profile_id)
         transaction_type_node.appendChild(payment_profile_node)
+    
+    def add_order_info(self, invoice_number=None,
+                       description=None,
+                       purchase_order_number=None):
+        if not (invoice_number or description or purchase_order_number):
+            return
+        order_node = self.document.CreateElement("order")
+        if invoice_number:
+            order_node.appendChild(self.get_text_node('invoiceNumber', invoice_number))
+        if description:
+            order_node.appendChild(self.get_text_node('description', description))
+        if purchase_order_number:
+            order_node.appendChild(self.get_text_node('purchaseOrderNumber', purchase_order_number))
+        self.transaction_node.appendChild(order_node)
+        
 
     def add_extra_options(self):
         extra_options_node = self.get_text_node("extraOptions",
