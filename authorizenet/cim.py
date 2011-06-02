@@ -469,7 +469,7 @@ class CreateTransactionRequest(BaseRequest):
             trans_id_node = self.get_text_node("transId", self.transaction_id)
             type_node.appendChild(trans_id_node)
         self.root.appendChild(transaction_node)
-        self.transaction_node = transaction_node
+        self.type_node = type_node
 
     def add_profile_ids(self, transaction_type_node):
         profile_node = self.get_text_node("customerProfileId", self.profile_id)
@@ -484,14 +484,14 @@ class CreateTransactionRequest(BaseRequest):
                        purchase_order_number=None):
         if not (invoice_number or description or purchase_order_number):
             return
-        order_node = self.document.CreateElement("order")
+        order_node = self.document.createElement("order")
         if invoice_number:
             order_node.appendChild(self.get_text_node('invoiceNumber', invoice_number))
         if description:
             order_node.appendChild(self.get_text_node('description', description))
         if purchase_order_number:
             order_node.appendChild(self.get_text_node('purchaseOrderNumber', purchase_order_number))
-        self.transaction_node.appendChild(order_node)
+        self.type_node.appendChild(order_node)
         
 
     def add_extra_options(self):
@@ -503,6 +503,7 @@ class CreateTransactionRequest(BaseRequest):
         try:
             response = Response.objects.create_from_list(
                     self.transaction_result)
+            
         except AttributeError:
             response = None
         return CIMResponse.objects.create(result=self.result,
