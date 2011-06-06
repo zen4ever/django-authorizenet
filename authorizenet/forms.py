@@ -69,6 +69,15 @@ class BillingAddressForm(forms.Form):
     country = CountryField(label="Country", initial="US")
     zip = forms.CharField(20, label="Postal / Zip Code")
 
+class ShippingAddressForm(forms.Form):
+    ship_to_first_name = forms.CharField(50, label="First Name")
+    ship_to_last_name = forms.CharField(50, label="Last Name")
+    ship_to_company = forms.CharField(50, label="Company", required=False)
+    ship_to_address = forms.CharField(60, label="Street Address")
+    ship_to_city = forms.CharField(40, label="City")
+    ship_to_state = forms.CharField(label="State")
+    ship_to_zip = forms.CharField(20, label="Postal / Zip Code")
+    ship_to_country = CountryField(label="Country", initial="US")
 
 class AIMPaymentForm(forms.Form):
     card_num = CreditCardField(label="Credit Card Number")
