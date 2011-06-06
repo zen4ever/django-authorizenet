@@ -50,6 +50,8 @@ def process_payment(form_data, extra_data):
     data['x_exp_date'] = data['x_exp_date'].strftime('%m%y')
     if getattr(settings, 'AUTHNET_FORCE_TEST_REQUEST', False):
         data['x_test_request'] = 'TRUE'
+    if hasattr(settings, 'AUTHNET_EMAIL_CUSTOMER'):
+        data['x_email_customer'] = settings.AUTHNET_EMAIL_CUSTOMER
     return create_response(data)
 
 

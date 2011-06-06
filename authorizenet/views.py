@@ -51,6 +51,7 @@ class AIMPayment(object):
                  payment_form_class=AIMPaymentForm,
                  context={},
                  billing_form_class=BillingAddressForm,
+                 shipping_form_class=None,
                  payment_template="authorizenet/aim_payment.html",
                  success_template='authorizenet/aim_success.html',
                  initial_data={}):
@@ -61,6 +62,7 @@ class AIMPayment(object):
         self.context = context
         self.initial_data = initial_data
         self.billing_form_class = billing_form_class
+        self.shipping_form_class = shipping_form_class
 
     def __call__(self, request):
         self.request = request
@@ -74,6 +76,9 @@ class AIMPayment(object):
                 initial=self.initial_data)
         self.context['billing_form'] = self.billing_form_class(
                 initial=self.initial_data)
+        if self.shipping_form_class:
+            self.context['shipping_form'] = self.shipping_form_class(
+                    initial=self.initial_data)
         return direct_to_template(self.request,
                                   self.payment_template,
                                   self.context)
@@ -81,8 +86,19 @@ class AIMPayment(object):
     def validate_payment_form(self):
         payment_form = self.payment_form_class(self.request.POST)
         billing_form = self.billing_form_class(self.request.POST)
-        if payment_form.is_valid() and billing_form.is_valid():
-            form_data = combine_form_data(payment_form, billing_form)
+        
+        if self.shipping_form_class:
+            shipping_form = self.shipping_form_class(self.request.POST)
+
+        #if shipping for exists also validate it
+        if payment_form.is_valid() and billing_form.is_valid() and (not self.shipping_form_class or shipping_form.is_valid()):
+            
+            if not self.shipping_form_class:
+                args = payment_form, billing_form
+            else:
+                args = payment_form, billing_form, shipping_form
+            
+            form_data = combine_form_data(*args)
             response = process_payment(form_data, self.extra_data)
             self.context['response'] = response
             if response.is_approved:
@@ -93,6 +109,8 @@ class AIMPayment(object):
                 self.context['errors'] = self.processing_error
         self.context['payment_form'] = payment_form
         self.context['billing_form'] = billing_form
+        if self.shipping_form_class:
+            self.context['shipping_form'] = shipping_form
         self.context.setdefault('errors', self.form_error)
         return direct_to_template(self.request,
                                   self.payment_template,
