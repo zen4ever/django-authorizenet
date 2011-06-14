@@ -91,7 +91,7 @@ class AIMPayment(object):
             shipping_form = self.shipping_form_class(self.request.POST)
 
         #if shipping for exists also validate it
-        if payment_form.is_valid() and billing_form.is_valid() and (not self.shipping_form_class or (shipping_form.is_valid() and shipping_form)):
+        if payment_form.is_valid() and billing_form.is_valid() and (not self.shipping_form_class or shipping_form.is_valid()):
             
             if not self.shipping_form_class:
                 args = payment_form, billing_form
