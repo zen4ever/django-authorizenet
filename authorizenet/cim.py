@@ -156,6 +156,58 @@ def delete_payment_profile(profile_id, payment_profile_id):
     return response
 
 
+def update_shipping_profile(profile_id,
+                            shipping_profile_id,
+                            shipping_form_data):
+    """
+    Update a customer shipping profile and return the CIMResponse.
+
+    Arguments:
+    profile_id -- unique gateway-assigned profile identifier
+    shipping_profile_id -- unique gateway-assigned shipping profile identifier
+    shipping_form_data -- dictionary with keys in SHIPPING_FIELDS
+    """
+    shipping_data = extract_form_data(shipping_form_data)
+    helper = UpdateShippingProfileRequest(profile_id,
+                                          shipping_profile_id,
+                                          shipping_data)
+    response = helper.get_response()
+    return response
+
+
+def create_shipping_profile(profile_id, shipping_form_data):
+    """
+    Create a customer shipping profile and return a tuple of the CIMResponse and
+    shipping profile ID.
+
+    Arguments:
+    profile_id -- unique gateway-assigned profile identifier
+    shipping_form_data -- dictionary with keys in SHIPPING_FIELDS
+    """
+    shipping_data = extract_form_data(shipping_form_data)
+    helper = CreateShippingProfileRequest(profile_id,
+                                          shipping_data)
+    response = helper.get_response()
+    if response.success:
+        shipping_profile_id = helper.shipping_profile_id
+    else:
+        shipping_profile_id = None
+    return response, shipping_profile_id
+
+
+def delete_shipping_profile(profile_id, shipping_profile_id):
+    """
+    Delete a customer shipping profile and return the CIMResponse.
+
+    Arguments:
+    profile_id -- unique gateway-assigned profile identifier
+    shipping_profile_id -- unique gateway-assigned shipping profile identifier
+    """
+    helper = DeleteShippingProfileRequest(profile_id, shipping_profile_id)
+    response = helper.get_response()
+    return response
+
+
 def get_profile(profile_id):
     """
     Retrieve a customer payment profile from the profile ID and return a tuple
