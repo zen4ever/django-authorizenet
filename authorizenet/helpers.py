@@ -1,8 +1,8 @@
 import re
-import urllib
 import urllib2
 
 from django.conf import settings
+from django.utils.http import urlencode
 
 from authorizenet import AUTHNET_POST_URL, AUTHNET_TEST_POST_URL
 
@@ -23,7 +23,7 @@ class AIMPaymentHelper(object):
         for k, v in final_data.items():
             if k != 'x_delim_char':
                 final_data[k] = unicode(v).replace(c, "\\%s" % c)
-        request_string = urllib.urlencode(final_data)
+        request_string = urlencode(final_data)
         response = urllib2.urlopen(self.endpoint, request_string).read()
         # Split response by delimiter,
         # unescaping delimiter characters in fields

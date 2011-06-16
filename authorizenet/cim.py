@@ -21,6 +21,15 @@ BILLING_FIELDS = ('firstName',
                   'phoneNumber',
                   'faxNumber')
 
+SHIPPING_FIELDS = ('firstName',
+                   'lastName',
+                   'company',
+                   'address',
+                   'city',
+                   'state',
+                   'zip',
+                   'country')
+
 CREDIT_CARD_FIELDS = ('cardNumber',
                       'expirationDate',
                       'cardCode')
@@ -46,7 +55,8 @@ def create_form_data(data):
     return dict(map(lambda x: (to_under(x[0]), x[1]), data.items()))
 
 
-def add_profile(customer_id, payment_form_data, billing_form_data):
+def add_profile(customer_id, payment_form_data, billing_form_data,
+                shipping_form_data):
     """
     Add a customer profile with a single payment profile
     and return a tuple of the CIMResponse, profile ID,
@@ -56,16 +66,20 @@ def add_profile(customer_id, payment_form_data, billing_form_data):
     customer_id -- unique merchant-assigned customer identifier
     payment_form_data -- dictionary with keys in CREDIT_CARD_FIELDS
     billing_form_data -- dictionary with keys in BILLING_FIELDS
+    shipping_form_data -- dictionary with keys in SHIPPING_FIELDS
     """
     payment_data = extract_form_data(payment_form_data)
     billing_data = extract_form_data(billing_form_data)
+    shipping_data = extract_form_data(shipping_form_data)
     payment_data['expirationDate'] = \
             payment_data['expirationDate'].strftime('%Y-%m')
-    helper = CreateProfileRequest(customer_id, billing_data, payment_data)
+    helper = CreateProfileRequest(customer_id, billing_data, shipping_data,
+                                  payment_data)
     response = helper.get_response()
     if response.success:
         profile_id = helper.profile_id
         payment_profile_ids = helper.payment_profile_ids
+        shipping_profile_ids = helper.shipping_profile_ids
         customer_was_created.send(sender=response,
                                   customer_id=helper.customer_id,
                                   profile_id=helper.profile_id,
@@ -73,9 +87,10 @@ def add_profile(customer_id, payment_form_data, billing_form_data):
     else:
         profile_id = None
         payment_profile_ids = None
+        shipping_profile_ids = None
         customer_was_flagged.send(sender=response,
                                   customer_id=helper.customer_id)
-    return response, profile_id, payment_profile_ids
+    return response, profile_id, payment_profile_ids, shipping_profile_ids
 
 
 def update_payment_profile(profile_id,
@@ -141,18 +156,70 @@ def delete_payment_profile(profile_id, payment_profile_id):
     return response
 
 
+def update_shipping_profile(profile_id,
+                            shipping_profile_id,
+                            shipping_form_data):
+    """
+    Update a customer shipping profile and return the CIMResponse.
+
+    Arguments:
+    profile_id -- unique gateway-assigned profile identifier
+    shipping_profile_id -- unique gateway-assigned shipping profile identifier
+    shipping_form_data -- dictionary with keys in SHIPPING_FIELDS
+    """
+    shipping_data = extract_form_data(shipping_form_data)
+    helper = UpdateShippingProfileRequest(profile_id,
+                                          shipping_profile_id,
+                                          shipping_data)
+    response = helper.get_response()
+    return response
+
+
+def create_shipping_profile(profile_id, shipping_form_data):
+    """
+    Create a customer shipping profile and return a tuple of the CIMResponse and
+    shipping profile ID.
+
+    Arguments:
+    profile_id -- unique gateway-assigned profile identifier
+    shipping_form_data -- dictionary with keys in SHIPPING_FIELDS
+    """
+    shipping_data = extract_form_data(shipping_form_data)
+    helper = CreateShippingProfileRequest(profile_id,
+                                          shipping_data)
+    response = helper.get_response()
+    if response.success:
+        shipping_profile_id = helper.shipping_profile_id
+    else:
+        shipping_profile_id = None
+    return response, shipping_profile_id
+
+
+def delete_shipping_profile(profile_id, shipping_profile_id):
+    """
+    Delete a customer shipping profile and return the CIMResponse.
+
+    Arguments:
+    profile_id -- unique gateway-assigned profile identifier
+    shipping_profile_id -- unique gateway-assigned shipping profile identifier
+    """
+    helper = DeleteShippingProfileRequest(profile_id, shipping_profile_id)
+    response = helper.get_response()
+    return response
+
+
 def get_profile(profile_id):
     """
     Retrieve a customer payment profile from the profile ID and return a tuple
-    of the CIMResponse and a list of dictionaries containing data for each
-    payment profile.
+    of the CIMResponse and two lists of dictionaries containing data for each
+    payment and shipping profile.
 
     Arguments:
     profile_id -- unique gateway-assigned profile identifier
     """
     helper = GetProfileRequest(profile_id)
     response = helper.get_response()
-    return response, helper.payment_profiles
+    return response, helper.payment_profiles, helper.shipping_profiles
 
 
 def process_transaction(*args, **kwargs):
@@ -282,8 +349,25 @@ class BasePaymentProfileRequest(BaseRequest):
         return payment_profile
 
 
-class CreateProfileRequest(BasePaymentProfileRequest):
-    def __init__(self, customer_id, billing_data=None, credit_card_data=None):
+class BaseShippingProfileRequest(BaseRequest):
+    def get_shipping_profile_node(self,
+                                  shipping_data,
+                                  node_name="shipToList"):
+        shipping_profile = self.document.createElement(node_name)
+
+        for key in SHIPPING_FIELDS:
+            value = shipping_data.get(key)
+            if value is not None:
+                node = self.get_text_node(key, value)
+                shipping_profile.appendChild(node)
+
+        return shipping_profile
+
+
+class CreateProfileRequest(BasePaymentProfileRequest,
+                           BaseShippingProfileRequest):
+    def __init__(self, customer_id, billing_data=None, shipping_data=None,
+                 credit_card_data=None):
         super(CreateProfileRequest,
               self).__init__("createCustomerProfileRequest")
         self.customer_id = customer_id
@@ -293,6 +377,10 @@ class CreateProfileRequest(BasePaymentProfileRequest):
                                                              credit_card_data,
                                                              "paymentProfiles")
             profile_node.appendChild(payment_profiles)
+        if shipping_data:
+            shipping_profiles = self.get_shipping_profile_node(shipping_data,
+                                                               "shipToList")
+            profile_node.appendChild(shipping_profiles)
         self.root.appendChild(profile_node)
 
     def get_profile_node(self):
@@ -304,6 +392,7 @@ class CreateProfileRequest(BasePaymentProfileRequest):
     def process_response(self, response):
         self.profile_id = None
         self.payment_profile_id = None
+        self.shipping_profile_id = None
         for e in response.childNodes[0].childNodes:
             if e.localName == 'messages':
                 self.process_message_node(e)
@@ -313,6 +402,10 @@ class CreateProfileRequest(BasePaymentProfileRequest):
                 self.payment_profile_ids = []
                 for f in e.childNodes:
                     self.payment_profile_ids.append(f.childNodes[0].nodeValue)
+            elif e.localName == 'customerShippingAddressIdList':
+                self.shipping_profile_ids = []
+                for f in e.childNodes:
+                    self.shipping_profile_ids.append(f.childNodes[0].nodeValue)
 
 
 class UpdatePaymentProfileRequest(BasePaymentProfileRequest):
@@ -365,6 +458,54 @@ class DeletePaymentProfileRequest(BasePaymentProfileRequest):
         self.root.appendChild(payment_profile_id_node)
 
 
+class UpdateShippingProfileRequest(BaseShippingProfileRequest):
+    def __init__(self,
+                 profile_id,
+                 shipping_profile_id,
+                 shipping_data=None,
+                 credit_card_data=None):
+        super(UpdateShippingProfileRequest,
+                self).__init__("updateCustomerShippingAddressRequest")
+        profile_id_node = self.get_text_node("customerProfileId", profile_id)
+        shipping_profile = self.get_shipping_profile_node(shipping_data,
+                                                          "address")
+        shipping_profile.appendChild(
+                self.get_text_node("customerAddressId",
+                                   shipping_profile_id))
+        self.root.appendChild(profile_id_node)
+        self.root.appendChild(shipping_profile)
+
+
+class CreateShippingProfileRequest(BaseShippingProfileRequest):
+    def __init__(self, profile_id, shipping_data=None, credit_card_data=None):
+        super(CreateShippingProfileRequest,
+                self).__init__("createCustomerShippingAddressRequest")
+        profile_id_node = self.get_text_node("customerProfileId", profile_id)
+        shipping_profile = self.get_shipping_profile_node(shipping_data,
+                                                          "address")
+        self.root.appendChild(profile_id_node)
+        self.root.appendChild(shipping_profile)
+
+    def process_response(self, response):
+        for e in response.childNodes[0].childNodes:
+            if e.localName == 'messages':
+                self.process_message_node(e)
+            elif e.localName == 'customerAddressId':
+                self.shipping_profile_id = e.childNodes[0].nodeValue
+
+
+class DeleteShippingProfileRequest(BaseShippingProfileRequest):
+    def __init__(self, profile_id, shipping_profile_id):
+        super(DeletePaymentProfileRequest,
+                self).__init__("deleteCustomerShippingAddressRequest")
+        profile_id_node = self.get_text_node("customerProfileId", profile_id)
+        shipping_profile_id_node = self.get_text_node(
+                "customerAddressId",
+                shipping_profile_id)
+        self.root.appendChild(profile_id_node)
+        self.root.appendChild(shipping_profile_id_node)
+
+
 class GetProfileRequest(BaseRequest):
     def __init__(self, profile_id):
         super(GetProfileRequest, self).__init__("getCustomerProfileRequest")
@@ -401,8 +542,17 @@ class GetProfileRequest(BaseRequest):
                 data['payment_profile_id'] = e.childNodes[0].nodeValue
         return data
 
+    def extract_shipping_profiles_data(self, node):
+        data = {}
+        data['shipping'] = create_form_data(self.process_children(node, SHIPPING_FIELDS))
+        for e in node.childNodes:
+            if e.localName == 'customerAddressId':
+                data['shipping_profile_id'] = e.childNodes[0].nodeValue
+        return data
+
     def process_response(self, response):
         self.payment_profiles = []
+        self.shipping_profiles = []
         for e in response.childNodes[0].childNodes:
             if e.localName == 'messages':
                 self.process_message_node(e)
@@ -411,12 +561,16 @@ class GetProfileRequest(BaseRequest):
                     if f.localName == 'paymentProfiles':
                         self.payment_profiles.append(
                                 self.extract_payment_profiles_data(f))
+                    elif f.localName == 'shipToList':
+                        self.shipping_profiles.append(
+                                self.extract_shipping_profiles_data(f))
 
 
 class CreateTransactionRequest(BaseRequest):
     def __init__(self,
                  profile_id,
                  payment_profile_id,
+                 shipping_profile_id,
                  transaction_type,
                  amount,
                  transaction_id=None,
@@ -425,6 +579,8 @@ class CreateTransactionRequest(BaseRequest):
         Arguments:
         profile_id -- unique gateway-assigned profile identifier
         payment_profile_id -- unique gateway-assigned payment profile
+                              identifier
+        shipping_profile_id -- unique gateway-assigned shipping profile
                               identifier
         transaction_type -- One of the transaction types listed below.
         amount -- Dollar amount of transaction
@@ -441,6 +597,7 @@ class CreateTransactionRequest(BaseRequest):
                 "createCustomerProfileTransactionRequest")
         self.profile_id = profile_id
         self.payment_profile_id = payment_profile_id
+        self.shipping_profile_id = shipping_profile_id
         self.transaction_type = transaction_type
         self.amount = amount
         self.transaction_id = transaction_id
@@ -472,6 +629,9 @@ class CreateTransactionRequest(BaseRequest):
         payment_profile_node = self.get_text_node("customerPaymentProfileId",
                                                   self.payment_profile_id)
         transaction_type_node.appendChild(payment_profile_node)
+        shipping_profile_node = self.get_text_node("customerShippingAddressId",
+                                                  self.shipping_profile_id)
+        transaction_type_node.appendChild(shipping_profile_node)
 
     def add_extra_options(self):
         extra_options_node = self.get_text_node("extraOptions",
