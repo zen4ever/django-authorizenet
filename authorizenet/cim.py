@@ -215,7 +215,7 @@ class BaseRequest(object):
         CIMResponse
         """
         request = urllib2.Request(self.endpoint,
-                                  self.document.toxml(),
+                                  self.document.toxml().encode('utf-8'),
                                   {'Content-Type': 'text/xml'})
         raw_response = urllib2.urlopen(request)
         response_xml = xml.dom.minidom.parse(raw_response)
@@ -228,7 +228,7 @@ class BaseRequest(object):
         with contents of text
         """
         node = self.document.createElement(node_name)
-        node.appendChild(self.document.createTextNode(str(text)))
+        node.appendChild(self.document.createTextNode(unicode(text)))
         return node
 
     def create_response_object(self):
