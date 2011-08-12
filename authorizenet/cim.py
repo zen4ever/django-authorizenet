@@ -282,6 +282,44 @@ class BasePaymentProfileRequest(BaseRequest):
         return payment_profile
 
 
+class GetHostedProfilePageRequest(BaseRequest):
+    """
+    Request a token for retrieving a Hosted CIM form.
+    
+    Arguments (required):
+    customer_profile_id -- the customer profile id
+    
+    Keyword Arguments (optional): Zero or more of:
+    
+    hostedProfileReturnUrl,
+    hostedProfileReturnUrlText,
+    hostedProfileHeadingBgColor,
+    hostedProfilePageBorderVisible,
+    hostedProfileIFrameCommunicatorUrl    
+    """
+    def __init__(self, customer_profile_id, **settings):
+        super(GetHostedProfilePageRequest, self).__init__('getHostedProfilePageRequest')
+        self.root.appendChild(self.get_text_node('customerProfileId', customer_profile_id))
+        hosted_profile_settings = self.document.createElement('hostedProfileSettings')
+        for name, value in settings.iteritems():
+            setting = self.document.createElement('setting')
+            setting_name = self.get_text_node('settingName', name)
+            setting_value = self.get_text_node('settingValue', value)
+            setting.appendChild(setting_name)
+            setting.appendChild(setting_value)
+            hosted_profile_settings.appendChild(setting)
+        self.root.appendChild(hosted_profile_settings)
+        
+    def process_response(self, response):
+        self.profile_id = None
+        self.payment_profile_id = None
+        for e in response.childNodes[0].childNodes:
+            if e.localName == 'messages':
+                self.process_message_node(e)
+            elif e.localName == 'token':
+                self.token = e.childNodes[0].nodeValue
+
+
 class CreateProfileRequest(BasePaymentProfileRequest):
     def __init__(self, customer_id, billing_data=None, credit_card_data=None):
         super(CreateProfileRequest,

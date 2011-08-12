@@ -17,4 +17,7 @@ urlpatterns = patterns('samplestore.views',
         name="samplestore_make_direct_payment"),
     url(r'^make_direct_payment/(\d+)/auth/$', 'make_direct_payment',
         {'auth_only': True}, name="samplestore_make_direct_payment_auth"),
+    
+    url(r'^edit_cim_profile/$', 'edit_cim_profile',
+        name='edit_cim_profile'),
 )
