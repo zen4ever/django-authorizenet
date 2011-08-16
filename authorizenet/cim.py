@@ -323,10 +323,18 @@ class GetHostedProfilePageRequest(BaseRequest):
 
 
 class CreateProfileRequest(BasePaymentProfileRequest):
-    def __init__(self, customer_id, billing_data=None, credit_card_data=None):
+    def __init__(self, customer_id=None, customer_email=None,
+                 customer_description=None, billing_data=None,
+                 credit_card_data=None):
+        if not (customer_id or customer_email or customer_description):
+            raise ValueError("%s requires one of 'customer_id', \
+                             customer_email or customer_description"
+                             % self.__class__.__name__)
         super(CreateProfileRequest,
               self).__init__("createCustomerProfileRequest")
-        self.customer_id = customer_id
+        self.customer_info = {'merchantCustomerId': customer_id,
+                              'email': customer_email,
+                              'description': customer_description}
         profile_node = self.get_profile_node()
         if credit_card_data:
             payment_profiles = self.get_payment_profile_node(billing_data,
@@ -337,8 +345,9 @@ class CreateProfileRequest(BasePaymentProfileRequest):
 
     def get_profile_node(self):
         profile = self.document.createElement("profile")
-        id_node = self.get_text_node("merchantCustomerId", self.customer_id)
-        profile.appendChild(id_node)
+        for node_name, value in self.customer_info:
+            if value:
+                profile.appendChild(self.get_text_node(node_name, value))
         return profile
 
     def process_response(self, response):
@@ -353,6 +362,20 @@ class CreateProfileRequest(BasePaymentProfileRequest):
                 self.payment_profile_ids = []
                 for f in e.childNodes:
                     self.payment_profile_ids.append(f.childNodes[0].nodeValue)
+
+
+class DeleteProfileRequest(BaseRequest):
+    """
+    Deletes a Customer Profile
+
+    Arguments:
+    profile_id: The gateway-assigned customer ID.
+    """
+    def __init__(self, profile_id):
+        super(DeleteProfileRequest,
+              self).__init__("deleteCustomerProfileRequest")
+        self.root.appendChild(self.get_text_node('customerProfileId',
+                                                 profile_id))
 
 
 class UpdatePaymentProfileRequest(BasePaymentProfileRequest):
