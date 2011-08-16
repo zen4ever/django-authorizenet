@@ -251,7 +251,7 @@ class BaseRequest(object):
                         self.resultCode = f.childNodes[0].nodeValue
                     elif f.localName == 'text':
                         self.resultText = f.childNodes[0].nodeValue
-
+ 
 
 class BasePaymentProfileRequest(BaseRequest):
     def get_payment_profile_node(self,
@@ -309,7 +309,7 @@ class GetHostedProfilePageRequest(BaseRequest):
             setting_value = self.get_text_node('settingValue', value)
             setting.appendChild(setting_name)
             setting.appendChild(setting_value)
-            hosted_profile_settings.appendChild(setting)
+            form_settings.appendChild(setting)
         self.root.appendChild(form_settings)
 
     def process_response(self, response):
@@ -332,9 +332,10 @@ class CreateProfileRequest(BasePaymentProfileRequest):
                              % self.__class__.__name__)
         super(CreateProfileRequest,
               self).__init__("createCustomerProfileRequest")
-        self.customer_info = {'merchantCustomerId': customer_id,
-                              'email': customer_email,
-                              'description': customer_description}
+        # order is important here, and OrderedDict not available < Python 2.7
+        self.customer_info = [('merchantCustomerId', customer_id),
+                              ('description', customer_description),
+                              ('email', customer_email)]
         profile_node = self.get_profile_node()
         if credit_card_data:
             payment_profiles = self.get_payment_profile_node(billing_data,
