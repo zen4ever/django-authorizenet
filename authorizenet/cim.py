@@ -285,22 +285,24 @@ class BasePaymentProfileRequest(BaseRequest):
 class GetHostedProfilePageRequest(BaseRequest):
     """
     Request a token for retrieving a Hosted CIM form.
-    
+
     Arguments (required):
     customer_profile_id -- the customer profile id
-    
+
     Keyword Arguments (optional): Zero or more of:
-    
+
     hostedProfileReturnUrl,
     hostedProfileReturnUrlText,
     hostedProfileHeadingBgColor,
     hostedProfilePageBorderVisible,
-    hostedProfileIFrameCommunicatorUrl    
+    hostedProfileIFrameCommunicatorUrl
     """
     def __init__(self, customer_profile_id, **settings):
-        super(GetHostedProfilePageRequest, self).__init__('getHostedProfilePageRequest')
-        self.root.appendChild(self.get_text_node('customerProfileId', customer_profile_id))
-        hosted_profile_settings = self.document.createElement('hostedProfileSettings')
+        super(GetHostedProfilePageRequest,
+              self).__init__('getHostedProfilePageRequest')
+        self.root.appendChild(self.get_text_node('customerProfileId',
+                                                 customer_profile_id))
+        form_settings = self.document.createElement('hostedProfileSettings')
         for name, value in settings.iteritems():
             setting = self.document.createElement('setting')
             setting_name = self.get_text_node('settingName', name)
@@ -308,8 +310,8 @@ class GetHostedProfilePageRequest(BaseRequest):
             setting.appendChild(setting_name)
             setting.appendChild(setting_value)
             hosted_profile_settings.appendChild(setting)
-        self.root.appendChild(hosted_profile_settings)
-        
+        self.root.appendChild(form_settings)
+
     def process_response(self, response):
         self.profile_id = None
         self.payment_profile_id = None
@@ -516,7 +518,7 @@ class CreateTransactionRequest(BaseRequest):
         payment_profile_node = self.get_text_node("customerPaymentProfileId",
                                                   self.payment_profile_id)
         transaction_type_node.appendChild(payment_profile_node)
-    
+
     def add_order_info(self, invoice_number=None,
                        description=None,
                        purchase_order_number=None):
@@ -524,13 +526,15 @@ class CreateTransactionRequest(BaseRequest):
             return
         order_node = self.document.createElement("order")
         if invoice_number:
-            order_node.appendChild(self.get_text_node('invoiceNumber', invoice_number))
+            order_node.appendChild(self.get_text_node('invoiceNumber',
+                                                      invoice_number))
         if description:
-            order_node.appendChild(self.get_text_node('description', description))
+            order_node.appendChild(self.get_text_node('description',
+                                                      description))
         if purchase_order_number:
-            order_node.appendChild(self.get_text_node('purchaseOrderNumber', purchase_order_number))
+            order_node.appendChild(self.get_text_node('purchaseOrderNumber',
+                                                      purchase_order_number))
         self.type_node.appendChild(order_node)
-        
 
     def add_extra_options(self):
         extra_options_node = self.get_text_node("extraOptions",
@@ -541,7 +545,6 @@ class CreateTransactionRequest(BaseRequest):
         try:
             response = Response.objects.create_from_list(
                     self.transaction_result)
-            
         except AttributeError:
             response = None
         return CIMResponse.objects.create(result=self.result,
