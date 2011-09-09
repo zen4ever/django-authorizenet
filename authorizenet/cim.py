@@ -2,6 +2,7 @@ import re
 import urllib2
 import xml.dom.minidom
 
+from django.utils.datastructures import SortedDict
 from django.conf import settings
 
 from authorizenet import AUTHNET_CIM_URL, AUTHNET_TEST_CIM_URL
@@ -61,20 +62,28 @@ def add_profile(customer_id, payment_form_data, billing_form_data):
     billing_data = extract_form_data(billing_form_data)
     payment_data['expirationDate'] = \
             payment_data['expirationDate'].strftime('%Y-%m')
-    helper = CreateProfileRequest(customer_id, billing_data, payment_data)
+    helper = CreateProfileRequest(
+            customer_id=customer_id,
+            billing_data=billing_data,
+            credit_card_data=payment_data)
     response = helper.get_response()
+    info = helper.customer_info
     if response.success:
         profile_id = helper.profile_id
         payment_profile_ids = helper.payment_profile_ids
         customer_was_created.send(sender=response,
-                                  customer_id=helper.customer_id,
+                                  customer_id=info.get("merchantCustomerId"),
+                                  customer_description=info.get("description"),
+                                  customer_email=info.get("email"),
                                   profile_id=helper.profile_id,
-                                  payment_profile_id=helper.payment_profile_id)
+                                  payment_profile_ids=helper.payment_profile_ids)
     else:
         profile_id = None
         payment_profile_ids = None
         customer_was_flagged.send(sender=response,
-                                  customer_id=helper.customer_id)
+                                  customer_id=info.get("merchantCustomerId"),
+                                  customer_description=info.get("description"),
+                                  customer_email=info.get("email"))
     return response, profile_id, payment_profile_ids
 
 
@@ -333,9 +342,10 @@ class CreateProfileRequest(BasePaymentProfileRequest):
         super(CreateProfileRequest,
               self).__init__("createCustomerProfileRequest")
         # order is important here, and OrderedDict not available < Python 2.7
-        self.customer_info = [('merchantCustomerId', customer_id),
-                              ('description', customer_description),
-                              ('email', customer_email)]
+        self.customer_info = SortedDict()
+        self.customer_info['merchantCustomerId'] = customer_id
+        self.customer_info['description'] = customer_description
+        self.customer_info['email'] = customer_email
         profile_node = self.get_profile_node()
         if credit_card_data:
             payment_profiles = self.get_payment_profile_node(billing_data,
@@ -346,14 +356,14 @@ class CreateProfileRequest(BasePaymentProfileRequest):
 
     def get_profile_node(self):
         profile = self.document.createElement("profile")
-        for node_name, value in self.customer_info:
+        for node_name, value in self.customer_info.items():
             if value:
                 profile.appendChild(self.get_text_node(node_name, value))
         return profile
 
     def process_response(self, response):
         self.profile_id = None
-        self.payment_profile_id = None
+        self.payment_profile_ids = None
         for e in response.childNodes[0].childNodes:
             if e.localName == 'messages':
                 self.process_message_node(e)
