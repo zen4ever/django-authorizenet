@@ -5,3 +5,14 @@ AUTHNET_DEBUG = DEBUG
 if AUTHNET_DEBUG:
     AUTHNET_LOGIN_ID = "your login id"
     AUTHNET_TRANSACTION_KEY = "your transaction key"
+
+"""
+For your reference, you can use the following test credit card numbers when testing your connection.
+The expiration date must be set to the present date or later:
+- American Express Test Card: 370000000000002
+- Discover Test Card: 6011000000000012
+- Visa Test Card: 4007000000027
+- Second Visa Test Card: 4012888818888
+- JCB: 3088000000000017
+- Diners Club/ Carte Blanche: 38000000000006
+"""
