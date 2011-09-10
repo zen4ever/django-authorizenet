@@ -16,6 +16,7 @@ ADDRESS_CHOICES = (
 class Customer(models.Model):
     user = models.ForeignKey(User)
     shipping_same_as_billing = models.BooleanField(default=True)
+    cim_profile_id = models.CharField(max_length=10)
 
     def __unicode__(self):
         return self.user.username

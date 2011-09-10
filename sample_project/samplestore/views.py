@@ -158,3 +158,54 @@ def capture(request, id):
                  'new_response': new_response},
                  context_instance=RequestContext(request))
     raise Http404
+
+
+from authorizenet.cim import GetHostedProfilePageRequest, CreateProfileRequest, \
+                             get_profile
+from authorizenet.forms import HostedCIMProfileForm
+
+@login_required
+def edit_cim_profile(request):
+    customer = request.user.get_profile()
+    if not customer.cim_profile_id:
+        # Create a new empty profile
+        helper = CreateProfileRequest(request.user.id)
+        resp = helper.get_response()
+        if resp.success:
+            customer.cim_profile_id = helper.profile_id
+            customer.save()
+        else:
+            # since this is a sample app, we'll just raise an exception
+            raise Exception("Error making Authorize.NET request: %s" % resp.result_text)
+    
+    # Get the token for displaying the hosted CIM form
+    settings = {
+        # Pass these when integrating the form as a redirect:
+        #'hostedProfileReturnUrl': 'http://localhost:8000/edit_cim_profile',
+        #'hostedProfileReturnUrlText': 'Back to the django-authorizenet sample app',
+        
+        # Pass 'false' for iframes, and 'true' for redirects
+        #'hostedProfilePageBorderVisible',
+        
+        # Pass this for iframes for automatic resizing
+        #'hostedProfileIFrameCommunicatorUrl'
+        
+        # Optional:
+        'hostedProfileHeadingBgColor': '#092E20'
+    }
+    helper = GetHostedProfilePageRequest(customer.cim_profile_id, **settings)
+    resp = helper.get_response()
+    if not resp.success:
+        raise Exception("Error making Authorize.NET request: %s" % resp.result_text)
+    
+    form = HostedCIMProfileForm(helper.token)
+    
+    # Optional - retrieve the current payment profile information for display
+    response, payment_profiles = get_profile(customer.cim_profile_id)
+    
+    return render_to_response('samplestore/edit_cim_profile.html',
+                              {'form': form,
+                               'customer': customer,
+                               'payment_profiles': payment_profiles},
+                              context_instance=RequestContext(request))
+                                         

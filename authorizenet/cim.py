@@ -251,7 +251,7 @@ class BaseRequest(object):
                         self.resultCode = f.childNodes[0].nodeValue
                     elif f.localName == 'text':
                         self.resultText = f.childNodes[0].nodeValue
-
+ 
 
 class BasePaymentProfileRequest(BaseRequest):
     def get_payment_profile_node(self,
@@ -282,11 +282,60 @@ class BasePaymentProfileRequest(BaseRequest):
         return payment_profile
 
 
+class GetHostedProfilePageRequest(BaseRequest):
+    """
+    Request a token for retrieving a Hosted CIM form.
+
+    Arguments (required):
+    customer_profile_id -- the customer profile id
+
+    Keyword Arguments (optional): Zero or more of:
+
+    hostedProfileReturnUrl,
+    hostedProfileReturnUrlText,
+    hostedProfileHeadingBgColor,
+    hostedProfilePageBorderVisible,
+    hostedProfileIFrameCommunicatorUrl
+    """
+    def __init__(self, customer_profile_id, **settings):
+        super(GetHostedProfilePageRequest,
+              self).__init__('getHostedProfilePageRequest')
+        self.root.appendChild(self.get_text_node('customerProfileId',
+                                                 customer_profile_id))
+        form_settings = self.document.createElement('hostedProfileSettings')
+        for name, value in settings.iteritems():
+            setting = self.document.createElement('setting')
+            setting_name = self.get_text_node('settingName', name)
+            setting_value = self.get_text_node('settingValue', value)
+            setting.appendChild(setting_name)
+            setting.appendChild(setting_value)
+            form_settings.appendChild(setting)
+        self.root.appendChild(form_settings)
+
+    def process_response(self, response):
+        self.profile_id = None
+        self.payment_profile_id = None
+        for e in response.childNodes[0].childNodes:
+            if e.localName == 'messages':
+                self.process_message_node(e)
+            elif e.localName == 'token':
+                self.token = e.childNodes[0].nodeValue
+
+
 class CreateProfileRequest(BasePaymentProfileRequest):
-    def __init__(self, customer_id, billing_data=None, credit_card_data=None):
+    def __init__(self, customer_id=None, customer_email=None,
+                 customer_description=None, billing_data=None,
+                 credit_card_data=None):
+        if not (customer_id or customer_email or customer_description):
+            raise ValueError("%s requires one of 'customer_id', \
+                             customer_email or customer_description"
+                             % self.__class__.__name__)
         super(CreateProfileRequest,
               self).__init__("createCustomerProfileRequest")
-        self.customer_id = customer_id
+        # order is important here, and OrderedDict not available < Python 2.7
+        self.customer_info = [('merchantCustomerId', customer_id),
+                              ('description', customer_description),
+                              ('email', customer_email)]
         profile_node = self.get_profile_node()
         if credit_card_data:
             payment_profiles = self.get_payment_profile_node(billing_data,
@@ -297,8 +346,9 @@ class CreateProfileRequest(BasePaymentProfileRequest):
 
     def get_profile_node(self):
         profile = self.document.createElement("profile")
-        id_node = self.get_text_node("merchantCustomerId", self.customer_id)
-        profile.appendChild(id_node)
+        for node_name, value in self.customer_info:
+            if value:
+                profile.appendChild(self.get_text_node(node_name, value))
         return profile
 
     def process_response(self, response):
@@ -313,6 +363,20 @@ class CreateProfileRequest(BasePaymentProfileRequest):
                 self.payment_profile_ids = []
                 for f in e.childNodes:
                     self.payment_profile_ids.append(f.childNodes[0].nodeValue)
+
+
+class DeleteProfileRequest(BaseRequest):
+    """
+    Deletes a Customer Profile
+
+    Arguments:
+    profile_id: The gateway-assigned customer ID.
+    """
+    def __init__(self, profile_id):
+        super(DeleteProfileRequest,
+              self).__init__("deleteCustomerProfileRequest")
+        self.root.appendChild(self.get_text_node('customerProfileId',
+                                                 profile_id))
 
 
 class UpdatePaymentProfileRequest(BasePaymentProfileRequest):
@@ -420,7 +484,8 @@ class CreateTransactionRequest(BaseRequest):
                  transaction_type,
                  amount,
                  transaction_id=None,
-                 delimiter=None):
+                 delimiter=None,
+                 order_info=None):
         """
         Arguments:
         profile_id -- unique gateway-assigned profile identifier
@@ -433,6 +498,8 @@ class CreateTransactionRequest(BaseRequest):
         transaction_id -- Required by PriorAuthCapture, Refund,
                           and Void transactions
         delimiter -- Delimiter used for transaction response data
+        order_info -- a dict with optional order parameters `invoice_number`,
+                      `description`, and `purchase_order_number` as keys.
 
         Accepted transaction types:
         AuthOnly, AuthCapture, CaptureOnly, PriorAuthCapture, Refund, Void
@@ -450,6 +517,8 @@ class CreateTransactionRequest(BaseRequest):
             self.delimiter = getattr(settings, 'AUTHNET_DELIM_CHAR', "|")
         self.add_transaction_node()
         self.add_extra_options()
+        if order_info:
+            self.add_order_info(**order_info)
 
     def add_transaction_node(self):
         transaction_node = self.document.createElement("transaction")
@@ -464,6 +533,7 @@ class CreateTransactionRequest(BaseRequest):
             trans_id_node = self.get_text_node("transId", self.transaction_id)
             type_node.appendChild(trans_id_node)
         self.root.appendChild(transaction_node)
+        self.type_node = type_node
 
     def add_profile_ids(self, transaction_type_node):
         profile_node = self.get_text_node("customerProfileId", self.profile_id)
@@ -472,6 +542,23 @@ class CreateTransactionRequest(BaseRequest):
         payment_profile_node = self.get_text_node("customerPaymentProfileId",
                                                   self.payment_profile_id)
         transaction_type_node.appendChild(payment_profile_node)
+
+    def add_order_info(self, invoice_number=None,
+                       description=None,
+                       purchase_order_number=None):
+        if not (invoice_number or description or purchase_order_number):
+            return
+        order_node = self.document.createElement("order")
+        if invoice_number:
+            order_node.appendChild(self.get_text_node('invoiceNumber',
+                                                      invoice_number))
+        if description:
+            order_node.appendChild(self.get_text_node('description',
+                                                      description))
+        if purchase_order_number:
+            order_node.appendChild(self.get_text_node('purchaseOrderNumber',
+                                                      purchase_order_number))
+        self.type_node.appendChild(order_node)
 
     def add_extra_options(self):
         extra_options_node = self.get_text_node("extraOptions",

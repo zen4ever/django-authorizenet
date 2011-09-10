@@ -82,6 +82,18 @@ class CIMPaymentForm(forms.Form):
     card_code = CreditCardCVV2Field(label="Card Security Code")
 
 
+class HostedCIMProfileForm(forms.Form):
+    token = forms.CharField(widget=forms.HiddenInput)
+    def __init__(self, token, *args, **kwargs):
+        super(HostedCIMProfileForm, self).__init__(*args, **kwargs)
+        self.fields['token'].initial = token
+        if settings.AUTHNET_DEBUG:
+            self.action = "https://test.authorize.net/profile/manage"
+        else:
+            self.action = "https://secure.authorize.net/profile/manage"
+        
+
+
 def get_test_exp_date():
     from datetime import date, timedelta
     test_date = date.today() + timedelta(days=365)
