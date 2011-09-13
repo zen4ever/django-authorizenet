@@ -568,7 +568,7 @@ class CreateShippingProfileRequest(BaseShippingProfileRequest):
 
 class DeleteShippingProfileRequest(BaseShippingProfileRequest):
     def __init__(self, profile_id, shipping_profile_id):
-        super(DeletePaymentProfileRequest,
+        super(DeleteShippingProfileRequest,
                 self).__init__("deleteCustomerShippingAddressRequest")
         profile_id_node = self.get_text_node("customerProfileId", profile_id)
         shipping_profile_id_node = self.get_text_node(
