@@ -46,6 +46,13 @@ def extract_form_data(data):
     return dict(map(lambda x: (to_camel(x[0]), x[1]), data.items()))
 
 
+def extract_payment_form_data(data):
+    payment_data = extract_form_data(data)
+    payment_data['expirationDate'] = \
+            payment_data['expirationDate'].strftime('%Y-%m')
+    return payment_data
+
+
 def create_form_data(data):
     """
     Convert all keys in data dictionary from camelCaseFormat to
@@ -57,7 +64,7 @@ def create_form_data(data):
 
 
 def add_profile(customer_id, payment_form_data, billing_form_data,
-                shipping_form_data):
+                shipping_form_data=None):
     """
     Add a customer profile with a single payment profile
     and return a tuple of the CIMResponse, profile ID,
@@ -69,16 +76,12 @@ def add_profile(customer_id, payment_form_data, billing_form_data,
     billing_form_data -- dictionary with keys in BILLING_FIELDS
     shipping_form_data -- dictionary with keys in SHIPPING_FIELDS
     """
-    payment_data = extract_form_data(payment_form_data)
-    billing_data = extract_form_data(billing_form_data)
-    shipping_data = extract_form_data(shipping_form_data)
-    payment_data['expirationDate'] = \
-            payment_data['expirationDate'].strftime('%Y-%m')
-    helper = CreateProfileRequest(
-            customer_id=customer_id,
-            billing_data=billing_data,
-            shipping_data=shipping_data,
-            credit_card_data=payment_data)
+    kwargs = {'customer_id': customer_id,
+              'credit_card_data': extract_payment_form_data(payment_form_data),
+              'billing_data': extract_form_data(billing_form_data)}
+    if shipping_form_data:
+        kwargs['shipping_data'] = extract_form_data(shipping_form_data)
+    helper = CreateProfileRequest(**kwargs)
     response = helper.get_response()
     info = helper.customer_info
     if response.success:
@@ -113,10 +116,8 @@ def update_payment_profile(profile_id,
     payment_form_data -- dictionary with keys in CREDIT_CARD_FIELDS
     billing_form_data -- dictionary with keys in BILLING_FIELDS
     """
-    payment_data = extract_form_data(payment_form_data)
+    payment_data = extract_payment_form_data(payment_form_data)
     billing_data = extract_form_data(billing_form_data)
-    payment_data['expirationDate'] = \
-            payment_data['expirationDate'].strftime('%Y-%m')
     helper = UpdatePaymentProfileRequest(profile_id,
                                          payment_profile_id,
                                          billing_data,
@@ -135,10 +136,8 @@ def create_payment_profile(profile_id, payment_form_data, billing_form_data):
     payment_form_data -- dictionary with keys in CREDIT_CARD_FIELDS
     billing_form_data -- dictionary with keys in BILLING_FIELDS
     """
-    payment_data = extract_form_data(payment_form_data)
+    payment_data = extract_payment_form_data(payment_form_data)
     billing_data = extract_form_data(billing_form_data)
-    payment_data['expirationDate'] = \
-            payment_data['expirationDate'].strftime('%Y-%m')
     helper = CreatePaymentProfileRequest(profile_id,
                                          billing_data,
                                          payment_data)
@@ -642,9 +641,9 @@ class CreateTransactionRequest(BaseRequest):
     def __init__(self,
                  profile_id,
                  payment_profile_id,
-                 shipping_profile_id,
                  transaction_type,
                  amount,
+                 shipping_profile_id=None,
                  transaction_id=None,
                  delimiter=None,
                  order_info=None):
@@ -707,9 +706,11 @@ class CreateTransactionRequest(BaseRequest):
         payment_profile_node = self.get_text_node("customerPaymentProfileId",
                                                   self.payment_profile_id)
         transaction_type_node.appendChild(payment_profile_node)
-        shipping_profile_node = self.get_text_node("customerShippingAddressId",
-                                                  self.shipping_profile_id)
-        transaction_type_node.appendChild(shipping_profile_node)
+        if self.shipping_profile_id:
+            shipping_profile_node = self.get_text_node(
+                                                "customerShippingAddressId",
+                                                self.shipping_profile_id)
+            transaction_type_node.appendChild(shipping_profile_node)
 
     def add_order_info(self, invoice_number=None,
                        description=None,
