@@ -99,8 +99,11 @@ def add_profile(customer_id, payment_form_data, billing_form_data,
         payment_profile_ids = None
         shipping_profile_ids = None
         customer_was_flagged.send(sender=response,
-                                  customer_id=helper.customer_id)
-    return response, profile_id, payment_profile_ids, shipping_profile_ids
+                                  customer_id=customer_id)
+    return {'response': response,
+            'profile_id': profile_id,
+            'payment_profile_ids': payment_profile_ids,
+            'shipping_profile_ids': 'shipping_profile_ids'}
 
 
 def update_payment_profile(profile_id,
@@ -146,7 +149,7 @@ def create_payment_profile(profile_id, payment_form_data, billing_form_data):
         payment_profile_id = helper.payment_profile_id
     else:
         payment_profile_id = None
-    return response, payment_profile_id
+    return {'response': response, 'payment_profile_id': payment_profile_id}
 
 
 def delete_payment_profile(profile_id, payment_profile_id):
@@ -198,7 +201,7 @@ def create_shipping_profile(profile_id, shipping_form_data):
         shipping_profile_id = helper.shipping_profile_id
     else:
         shipping_profile_id = None
-    return response, shipping_profile_id
+    return {'response': response, 'shipping_profile_id': shipping_profile_id}
 
 
 def delete_shipping_profile(profile_id, shipping_profile_id):
@@ -225,7 +228,9 @@ def get_profile(profile_id):
     """
     helper = GetProfileRequest(profile_id)
     response = helper.get_response()
-    return response, helper.payment_profiles, helper.shipping_profiles
+    return {'response': response,
+            'payment_profiles': helper.payment_profiles,
+            'shipping_profiles': helper.shipping_profiles}
 
 
 def process_transaction(*args, **kwargs):
