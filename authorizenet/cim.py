@@ -647,7 +647,7 @@ class CreateTransactionRequest(BaseRequest):
                  profile_id,
                  payment_profile_id,
                  transaction_type,
-                 amount,
+                 amount=None,
                  shipping_profile_id=None,
                  transaction_id=None,
                  delimiter=None,
@@ -694,8 +694,9 @@ class CreateTransactionRequest(BaseRequest):
         type_node = self.document.createElement("profileTrans%s" %
                 self.transaction_type)
 
-        amount_node = self.get_text_node("amount", self.amount)
-        type_node.appendChild(amount_node)
+        if self.amount and self.transaction_type != "Void":
+            amount_node = self.get_text_node("amount", self.amount)
+            type_node.appendChild(amount_node)
         transaction_node.appendChild(type_node)
         self.add_profile_ids(type_node)
         if self.transaction_id:
