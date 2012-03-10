@@ -201,7 +201,10 @@ def edit_cim_profile(request):
     form = HostedCIMProfileForm(helper.token)
     
     # Optional - retrieve the current payment profile information for display
-    response, payment_profiles = get_profile(customer.cim_profile_id)
+    r = get_profile(customer.cim_profile_id)
+    response = r['response']
+    payment_profiles = r['payment_profiles']
+    shipping_profiles = r['shipping_profiles']
     
     return render_to_response('samplestore/edit_cim_profile.html',
                               {'form': form,
