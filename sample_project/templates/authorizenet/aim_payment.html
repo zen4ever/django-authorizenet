@@ -5,7 +5,11 @@
 {{ item.price }}</p>
 <p>{{ errors }}</p>
 <form action="." method="POST">{% csrf_token %}
+<h2>Billing address</h2>
 {{ billing_form.as_p }}
+<h2>Shipping address</h2>
+{{ shipping_form.as_p }}
+<h2>Payment info</h2>
 {{ payment_form.as_p }}
 <input type="submit" value="Pay" />
 </form>

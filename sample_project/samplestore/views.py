@@ -10,7 +10,7 @@ from django.contrib.sites.models import Site
 from django.contrib.auth.decorators import login_required
 
 from authorizenet import AUTHNET_POST_URL, AUTHNET_TEST_POST_URL
-from authorizenet.forms import SIMPaymentForm, SIMBillingForm
+from authorizenet.forms import SIMPaymentForm, SIMBillingForm, ShippingAddressForm
 from authorizenet.models import Response
 from authorizenet.views import AIMPayment
 from authorizenet.utils import get_fingerprint, capture_transaction
@@ -129,9 +129,12 @@ def make_direct_payment(request, invoice_id, auth_only=False):
     extra_data['amount'] = "%.2f" % invoice.item.price
     extra_data['invoice_num'] = invoice.id
     extra_data['description'] = invoice.item.title
-    pp = AIMPayment(extra_data=extra_data,
-            context={'item': invoice.item},
-            initial_data=initial_data)
+    pp = AIMPayment(
+        extra_data=extra_data,
+        context={'item': invoice.item},
+        initial_data=initial_data,
+        shipping_form_class=ShippingAddressForm
+    )
     return pp(request)
 
 
