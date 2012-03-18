@@ -64,7 +64,7 @@ def create_form_data(data):
 
 
 def add_profile(customer_id, payment_form_data, billing_form_data,
-                shipping_form_data=None):
+                shipping_form_data=None, validation_mode=None):
     """
     Add a customer profile with a single payment profile
     and return a tuple of the CIMResponse, profile ID,
@@ -75,12 +75,15 @@ def add_profile(customer_id, payment_form_data, billing_form_data,
     payment_form_data -- dictionary with keys in CREDIT_CARD_FIELDS
     billing_form_data -- dictionary with keys in BILLING_FIELDS
     shipping_form_data -- dictionary with keys in SHIPPING_FIELDS
+    validation_mode -- 'testMode' or 'liveMode'
     """
     kwargs = {'customer_id': customer_id,
               'credit_card_data': extract_payment_form_data(payment_form_data),
               'billing_data': extract_form_data(billing_form_data)}
     if shipping_form_data:
         kwargs['shipping_data'] = extract_form_data(shipping_form_data)
+    if validation_mode:
+        kwargs['validation_mode'] = validation_mode
     helper = CreateProfileRequest(**kwargs)
     response = helper.get_response()
     info = helper.customer_info
@@ -103,7 +106,7 @@ def add_profile(customer_id, payment_form_data, billing_form_data,
     return {'response': response,
             'profile_id': profile_id,
             'payment_profile_ids': payment_profile_ids,
-            'shipping_profile_ids': 'shipping_profile_ids'}
+            'shipping_profile_ids': shipping_profile_ids}
 
 
 def update_payment_profile(profile_id,
@@ -129,7 +132,7 @@ def update_payment_profile(profile_id,
     return response
 
 
-def create_payment_profile(profile_id, payment_form_data, billing_form_data):
+def create_payment_profile(profile_id, payment_form_data, billing_form_data, validation_mode=None):
     """
     Create a customer payment profile and return a tuple of the CIMResponse and
     payment profile ID.
@@ -138,12 +141,14 @@ def create_payment_profile(profile_id, payment_form_data, billing_form_data):
     profile_id -- unique gateway-assigned profile identifier
     payment_form_data -- dictionary with keys in CREDIT_CARD_FIELDS
     billing_form_data -- dictionary with keys in BILLING_FIELDS
+    validation_mode -- 'testMode' or 'liveMode'
     """
     payment_data = extract_payment_form_data(payment_form_data)
     billing_data = extract_form_data(billing_form_data)
     helper = CreatePaymentProfileRequest(profile_id,
                                          billing_data,
-                                         payment_data)
+                                         payment_data,
+                                         validation_mode)
     response = helper.get_response()
     if response.success:
         payment_profile_id = helper.payment_profile_id
@@ -329,7 +334,7 @@ class BaseRequest(object):
                         self.resultCode = f.childNodes[0].nodeValue
                     elif f.localName == 'text':
                         self.resultText = f.childNodes[0].nodeValue
- 
+
 
 class BasePaymentProfileRequest(BaseRequest):
     def get_payment_profile_node(self,
@@ -415,11 +420,18 @@ class BaseShippingProfileRequest(BaseRequest):
         return shipping_profile
 
 
-class CreateProfileRequest(BasePaymentProfileRequest,
+class BaseValidationModeRequest(BaseRequest):
+    def get_validation_mode_node(self,
+                                 validation_mode=None,
+                                 node_name="validationMode"):
+        return self.get_text_node(node_name, validation_mode)
+
+
+class CreateProfileRequest(BaseValidationModeRequest, BasePaymentProfileRequest,
                            BaseShippingProfileRequest):
     def __init__(self, customer_id=None, customer_email=None,
                  customer_description=None, billing_data=None,
-                  shipping_data=None,credit_card_data=None):
+                  shipping_data=None, credit_card_data=None, validation_mode=None):
         if not (customer_id or customer_email or customer_description):
             raise ValueError("%s requires one of 'customer_id', \
                              customer_email or customer_description"
@@ -443,6 +455,10 @@ class CreateProfileRequest(BasePaymentProfileRequest,
                                                                "shipToList")
             profile_node.appendChild(shipping_profiles)
         self.root.appendChild(profile_node)
+
+        if validation_mode:
+            validation_mode_node = self.get_validation_mode_node(validation_mode)
+            self.root.appendChild(validation_mode_node)
 
     def get_profile_node(self):
         profile = self.document.createElement("profile")
@@ -503,8 +519,8 @@ class UpdatePaymentProfileRequest(BasePaymentProfileRequest):
         self.root.appendChild(payment_profile)
 
 
-class CreatePaymentProfileRequest(BasePaymentProfileRequest):
-    def __init__(self, profile_id, billing_data=None, credit_card_data=None):
+class CreatePaymentProfileRequest(BaseValidationModeRequest, BasePaymentProfileRequest):
+    def __init__(self, profile_id, billing_data=None, credit_card_data=None, validation_mode=None):
         super(CreatePaymentProfileRequest,
                 self).__init__("createCustomerPaymentProfileRequest")
         profile_id_node = self.get_text_node("customerProfileId", profile_id)
@@ -513,6 +529,9 @@ class CreatePaymentProfileRequest(BasePaymentProfileRequest):
                                                         "paymentProfile")
         self.root.appendChild(profile_id_node)
         self.root.appendChild(payment_profile)
+        if validation_mode:
+            validation_mode_node = self.get_validation_mode_node(validation_mode)
+            self.root.appendChild(validation_mode_node)
 
     def process_response(self, response):
         for e in response.childNodes[0].childNodes:
