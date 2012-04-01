@@ -64,7 +64,8 @@ def create_form_data(data):
 
 
 def add_profile(customer_id, payment_form_data, billing_form_data,
-                shipping_form_data=None, validation_mode=None):
+                shipping_form_data=None, customer_email=None,
+                customer_description=None, validation_mode=None):
     """
     Add a customer profile with a single payment profile
     and return a tuple of the CIMResponse, profile ID,
@@ -75,9 +76,13 @@ def add_profile(customer_id, payment_form_data, billing_form_data,
     payment_form_data -- dictionary with keys in CREDIT_CARD_FIELDS
     billing_form_data -- dictionary with keys in BILLING_FIELDS
     shipping_form_data -- dictionary with keys in SHIPPING_FIELDS
+    customer_email -- customer email
+    customer_description -- customer decription
     validation_mode -- 'testMode' or 'liveMode'
     """
     kwargs = {'customer_id': customer_id,
+              'customer_email': customer_email,
+              'customer_description': customer_description,
               'credit_card_data': extract_payment_form_data(payment_form_data),
               'billing_data': extract_form_data(billing_form_data)}
     if shipping_form_data:
