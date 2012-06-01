@@ -683,8 +683,7 @@ class CreateTransactionRequest(BaseRequest):
         self.transaction_type = transaction_type
         self.amount = amount
         self.transaction_id = transaction_id
-        if card_code:
-            self.card_code = card_code
+        self.card_code = card_code
         if delimiter:
             self.delimiter = delimiter
         else:
