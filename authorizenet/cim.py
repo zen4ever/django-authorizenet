@@ -650,6 +650,7 @@ class CreateTransactionRequest(BaseRequest):
                  amount=None,
                  shipping_profile_id=None,
                  transaction_id=None,
+                 card_code=None,
                  delimiter=None,
                  order_info=None):
         """
@@ -665,6 +666,8 @@ class CreateTransactionRequest(BaseRequest):
         Keyword Arguments:
         transaction_id -- Required by PriorAuthCapture, Refund,
                           and Void transactions
+        card_code -- The customer's card code (the three or four digit 
+                          number on the back or front of a credit card)
         delimiter -- Delimiter used for transaction response data
         order_info -- a dict with optional order parameters `invoice_number`,
                       `description`, and `purchase_order_number` as keys.
@@ -680,6 +683,7 @@ class CreateTransactionRequest(BaseRequest):
         self.transaction_type = transaction_type
         self.amount = amount
         self.transaction_id = transaction_id
+        self.card_code = card_code
         if delimiter:
             self.delimiter = delimiter
         else:
@@ -702,6 +706,9 @@ class CreateTransactionRequest(BaseRequest):
         if self.transaction_id:
             trans_id_node = self.get_text_node("transId", self.transaction_id)
             type_node.appendChild(trans_id_node)
+        if self.card_code:
+            card_code_node = self.get_text_node("cardCode", self.card_code)
+            type_node.appendChild(card_code_node)
         self.root.appendChild(transaction_node)
         self.type_node = type_node
 
