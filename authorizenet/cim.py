@@ -692,6 +692,9 @@ class CreateTransactionRequest(BaseRequest):
         self.add_extra_options()
         if order_info:
             self.add_order_info(**order_info)
+        if self.card_code:
+            card_code_node = self.get_text_node("cardCode", self.card_code)
+            self.type_node.appendChild(card_code_node)
 
     def add_transaction_node(self):
         transaction_node = self.document.createElement("transaction")
@@ -706,9 +709,6 @@ class CreateTransactionRequest(BaseRequest):
         if self.transaction_id:
             trans_id_node = self.get_text_node("transId", self.transaction_id)
             type_node.appendChild(trans_id_node)
-        if self.card_code:
-            card_code_node = self.get_text_node("cardCode", self.card_code)
-            type_node.appendChild(card_code_node)
         self.root.appendChild(transaction_node)
         self.type_node = type_node
 
