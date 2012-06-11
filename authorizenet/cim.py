@@ -103,7 +103,7 @@ def add_profile(customer_id, payment_form_data, billing_form_data,
     return {'response': response,
             'profile_id': profile_id,
             'payment_profile_ids': payment_profile_ids,
-            'shipping_profile_ids': 'shipping_profile_ids'}
+            'shipping_profile_ids': shipping_profile_ids}
 
 
 def update_payment_profile(profile_id,
