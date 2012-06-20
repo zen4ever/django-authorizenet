@@ -435,7 +435,6 @@ class CreateProfileRequest(BasePaymentProfileRequest,
         super(CreateProfileRequest,
               self).__init__("createCustomerProfileRequest")
         # order is important here, and OrderedDict not available < Python 2.7
-        self.profile_id = customer_id
         self.customer_info = SortedDict()
         self.customer_info['merchantCustomerId'] = customer_id
         self.customer_info['description'] = customer_description
