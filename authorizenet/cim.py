@@ -64,21 +64,28 @@ def create_form_data(data):
 
 
 def add_profile(customer_id, payment_form_data, billing_form_data,
-                shipping_form_data=None):
+                shipping_form_data=None, customer_email=None,
+                customer_description=None):
     """
     Add a customer profile with a single payment profile
     and return a tuple of the CIMResponse, profile ID,
     and single-element list of payment profile IDs.
 
-    Arguments:
+    Arguments (required):
     customer_id -- unique merchant-assigned customer identifier
     payment_form_data -- dictionary with keys in CREDIT_CARD_FIELDS
     billing_form_data -- dictionary with keys in BILLING_FIELDS
     shipping_form_data -- dictionary with keys in SHIPPING_FIELDS
+
+    Keyword Arguments (optional):
+    customer_email -- customer email
+    customer_description -- customer description
     """
     kwargs = {'customer_id': customer_id,
               'credit_card_data': extract_payment_form_data(payment_form_data),
-              'billing_data': extract_form_data(billing_form_data)}
+              'billing_data': extract_form_data(billing_form_data),
+              'customer_email': customer_email,
+              'customer_description': customer_description}
     if shipping_form_data:
         kwargs['shipping_data'] = extract_form_data(shipping_form_data)
     helper = CreateProfileRequest(**kwargs)
@@ -428,6 +435,7 @@ class CreateProfileRequest(BasePaymentProfileRequest,
         super(CreateProfileRequest,
               self).__init__("createCustomerProfileRequest")
         # order is important here, and OrderedDict not available < Python 2.7
+        self.profile_id = customer_id
         self.customer_info = SortedDict()
         self.customer_info['merchantCustomerId'] = customer_id
         self.customer_info['description'] = customer_description
