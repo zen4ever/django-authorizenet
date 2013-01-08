@@ -676,7 +676,8 @@ class CreateTransactionRequest(BaseRequest):
                  transaction_id=None,
                  delimiter=None,
                  order_info=None,
-                 email_customer=None):
+                 email_customer=None,
+                 duplicate_window=None):
         """
         Arguments:
         profile_id -- unique gateway-assigned profile identifier
@@ -694,6 +695,7 @@ class CreateTransactionRequest(BaseRequest):
         order_info -- a dict with optional order parameters `invoice_number`,
                       `description`, and `purchase_order_number` as keys.
         email_customer -- True or False, if passed, the api field will override configuration settings at Authorize.Net.
+        duplicate_window -- set the number of seconds for duplicate window duration
         Accepted transaction types:
         AuthOnly, AuthCapture, CaptureOnly, PriorAuthCapture, Refund, Void
         """
@@ -710,6 +712,8 @@ class CreateTransactionRequest(BaseRequest):
         else:
             self.delimiter = getattr(settings, 'AUTHNET_DELIM_CHAR', "|")
         self.email_customer = email_customer
+        self.duplicate_window = duplicate_window
+
         self.add_transaction_node()
         self.add_extra_options()
         if order_info:
@@ -765,6 +769,8 @@ class CreateTransactionRequest(BaseRequest):
         extra_options = "x_delim_data=TRUE&x_delim_char=%s" % self.delimiter
         if self.email_customer is not None:
             extra_options += "&x_email_customer=%s" % self.email_customer
+        if self.duplicate_window is not None:
+            extra_options += "&x_duplicate_window=%s" % self.duplicate_window
         extra_options_node = self.get_text_node("extraOptions", extra_options)
         self.root.appendChild(extra_options_node)
 
