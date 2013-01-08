@@ -675,7 +675,8 @@ class CreateTransactionRequest(BaseRequest):
                  shipping_profile_id=None,
                  transaction_id=None,
                  delimiter=None,
-                 order_info=None):
+                 order_info=None,
+                 email_customer=None):
         """
         Arguments:
         profile_id -- unique gateway-assigned profile identifier
@@ -692,7 +693,7 @@ class CreateTransactionRequest(BaseRequest):
         delimiter -- Delimiter used for transaction response data
         order_info -- a dict with optional order parameters `invoice_number`,
                       `description`, and `purchase_order_number` as keys.
-
+        email_customer -- True or False, if passed, the api field will override configuration settings at Authorize.Net.
         Accepted transaction types:
         AuthOnly, AuthCapture, CaptureOnly, PriorAuthCapture, Refund, Void
         """
@@ -708,6 +709,7 @@ class CreateTransactionRequest(BaseRequest):
             self.delimiter = delimiter
         else:
             self.delimiter = getattr(settings, 'AUTHNET_DELIM_CHAR', "|")
+        self.email_customer = email_customer
         self.add_transaction_node()
         self.add_extra_options()
         if order_info:
@@ -760,8 +762,10 @@ class CreateTransactionRequest(BaseRequest):
         self.type_node.appendChild(order_node)
 
     def add_extra_options(self):
-        extra_options_node = self.get_text_node("extraOptions",
-                "x_delim_data=TRUE&x_delim_char=%s" % self.delimiter)
+        extra_options = "x_delim_data=TRUE&x_delim_char=%s" % self.delimiter
+        if self.email_customer is not None:
+            extra_options += "&x_email_customer=%s" % self.email_customer
+        extra_options_node = self.get_text_node("extraOptions", extra_options)
         self.root.appendChild(extra_options_node)
 
     def create_response_object(self):
