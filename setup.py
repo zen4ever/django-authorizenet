@@ -4,7 +4,7 @@ from distutils.core import setup
 import os
 
 setup(name='django-authorizenet',
-      version='1.0',
+      version='2.0',
       description='Django and Authorize.NET payment gateway integration',
       author='Andrii Kurinnyi',
       author_email='andrew@zen4ever.com',
