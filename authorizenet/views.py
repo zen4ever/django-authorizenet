@@ -4,7 +4,7 @@ except ImportError:
     import md5 as hashlib
 
 from django.conf import settings
-from django.views.generic.simple import direct_to_template
+from django.shortcuts import render
 from django.views.decorators.csrf import csrf_exempt
 
 from authorizenet.forms import AIMPaymentForm, BillingAddressForm
@@ -34,7 +34,7 @@ def sim_payment(request):
     else:
         payment_was_flagged.send(sender=response)
 
-    return direct_to_template(request, 'authorizenet/sim_payment.html')
+    return render(request, 'authorizenet/sim_payment.html')
 
 
 class AIMPayment(object):
@@ -79,9 +79,11 @@ class AIMPayment(object):
         if self.shipping_form_class:
             self.context['shipping_form'] = self.shipping_form_class(
                     initial=self.initial_data)
-        return direct_to_template(self.request,
-                                  self.payment_template,
-                                  self.context)
+        return render(
+            self.request,
+            self.payment_template,
+            self.context
+        )
 
     def validate_payment_form(self):
         payment_form = self.payment_form_class(self.request.POST)
@@ -102,9 +104,11 @@ class AIMPayment(object):
             response = process_payment(form_data, self.extra_data)
             self.context['response'] = response
             if response.is_approved:
-                return direct_to_template(self.request,
-                                          self.success_template,
-                                          self.context)
+                return render(
+                    self.request,
+                    self.success_template,
+                    self.context
+                )
             else:
                 self.context['errors'] = self.processing_error
         self.context['payment_form'] = payment_form
@@ -112,6 +116,8 @@ class AIMPayment(object):
         if self.shipping_form_class:
             self.context['shipping_form'] = shipping_form
         self.context.setdefault('errors', self.form_error)
-        return direct_to_template(self.request,
-                                  self.payment_template,
-                                  self.context)
+        return render(
+            self.request,
+            self.payment_template,
+            self.context
+        )
