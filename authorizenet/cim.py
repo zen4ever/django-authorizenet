@@ -1,9 +1,9 @@
 import re
-import urllib2
 import xml.dom.minidom
 
 from django.utils.datastructures import SortedDict
 from django.conf import settings
+import requests
 
 from authorizenet import AUTHNET_CIM_URL, AUTHNET_TEST_CIM_URL
 from authorizenet.models import CIMResponse, Response
@@ -299,11 +299,11 @@ class BaseRequest(object):
         Submit request to Authorize.NET CIM server and return the resulting
         CIMResponse
         """
-        request = urllib2.Request(self.endpoint,
-                                  self.document.toxml().encode('utf-8'),
-                                  {'Content-Type': 'text/xml'})
-        raw_response = urllib2.urlopen(request)
-        response_xml = xml.dom.minidom.parse(raw_response)
+        response = requests.post(
+            self.endpoint,
+            data=self.document.toxml().encode('utf-8'),
+            headers={'Content-Type': 'text/xml'})
+        response_xml = xml.dom.minidom.parse(response.text)
         self.process_response(response_xml)
         return self.create_response_object()
 
@@ -336,7 +336,7 @@ class BaseRequest(object):
                         self.resultCode = f.childNodes[0].nodeValue
                     elif f.localName == 'text':
                         self.resultText = f.childNodes[0].nodeValue
- 
+
 
 class BasePaymentProfileRequest(BaseRequest):
     def get_payment_profile_node(self,
@@ -673,7 +673,7 @@ class CreateTransactionRequest(BaseRequest):
         Keyword Arguments:
         transaction_id -- Required by PriorAuthCapture, Refund,
                           and Void transactions
-        card_code -- The customer's card code (the three or four digit 
+        card_code -- The customer's card code (the three or four digit
                           number on the back or front of a credit card)
         delimiter -- Delimiter used for transaction response data
         order_info -- a dict with optional order parameters `invoice_number`,
