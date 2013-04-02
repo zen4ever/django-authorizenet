@@ -1,10 +1,10 @@
 #!/usr/bin/env python
 
-from distutils.core import setup
+from setuptools import setup, find_packages
 import os
 
 setup(name='django-authorizenet',
-      version='2.0',
+      version='2.1',
       description='Django and Authorize.NET payment gateway integration',
       author='Andrii Kurinnyi',
       author_email='andrew@zen4ever.com',
@@ -23,4 +23,4 @@ setup(name='django-authorizenet',
       long_description=open(
           os.path.join(os.path.dirname(__file__), 'README.rst'),
       ).read().strip(),
-      install_requires=['requests'])
+      install_requires=['requests', 'django>=1.4'])

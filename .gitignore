@@ -1,3 +1,6 @@
 *.pyc
 sample_project/local_settings.py
 sample_project/dev.db
+*.egg-info
+build/
+dist/
