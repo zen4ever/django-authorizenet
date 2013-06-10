@@ -23,4 +23,5 @@ setup(name='django-authorizenet',
       long_description=open(
           os.path.join(os.path.dirname(__file__), 'README.rst'),
       ).read().strip(),
+      test_suite='runtests.runtests',
       install_requires=['requests', 'django>=1.4'])
