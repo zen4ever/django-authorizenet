@@ -4,3 +4,6 @@ sample_project/dev.db
 *.egg-info
 build/
 dist/
+.coverage
+.tox
+htmlcov
