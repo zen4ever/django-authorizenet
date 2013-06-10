@@ -7,3 +7,4 @@ dist/
 .coverage
 .tox
 htmlcov
+docs/_build/
