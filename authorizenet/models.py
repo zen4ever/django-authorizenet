@@ -118,6 +118,9 @@ class ResponseManager(models.Manager):
 
 
 class Response(models.Model):
+
+    """Transaction Response (See Section 4 of AIM Developer Guide)"""
+
     response_code = models.CharField(max_length=2, choices=RESPONSE_CHOICES)
     response_subcode = models.CharField(max_length=10)
     response_reason_code = models.CharField(max_length=15)
@@ -184,6 +187,9 @@ class Response(models.Model):
 
 
 class CIMResponse(models.Model):
+
+    """Response for CIM API call (See Section 3 in CIM XML Guide)"""
+
     result = models.CharField(max_length=8)
     result_code = models.CharField(max_length=8,
                                    choices=CIM_RESPONSE_CODE_CHOICES)
