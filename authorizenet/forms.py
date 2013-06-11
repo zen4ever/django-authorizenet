@@ -2,6 +2,7 @@ from django import forms
 from django.conf import settings
 from authorizenet.fields import CreditCardField, CreditCardExpiryField, \
         CreditCardCVV2Field, CountryField
+from authorizenet.models import CustomerProfile, CustomerPaymentProfile
 
 
 class SIMPaymentForm(forms.Form):
@@ -92,7 +93,40 @@ class CIMPaymentForm(forms.Form):
 
 
 class CustomerPaymentForm(CIMPaymentForm, BillingAddressForm):
+
     """Base customer payment form without shipping address"""
+
+    def __init__(self, *args, **kwargs):
+        self.instance = kwargs.pop('instance', None)
+        self.user = kwargs.pop('user', None)
+        return super(CustomerPaymentForm, self).__init__(*args, **kwargs)
+
+    def create_payment_profile(self, **kwargs):
+        """Create and return payment profile"""
+        customer_profile = self.get_customer_profile()
+        if customer_profile:
+            return CustomerPaymentProfile.objects.create(
+                customer_profile=customer_profile, **kwargs)
+        else:
+            customer_profile = CustomerProfile.objects.create(
+                user=self.user, **kwargs)
+            return customer_profile.payment_profiles.get()
+
+    def get_customer_profile(self):
+        """Return customer profile or ``None`` if none exists"""
+        try:
+            return CustomerProfile.objects.get(user=self.user)
+        except CustomerProfile.DoesNotExist:
+            return None
+
+    def save(self):
+        return self.create_payment_profile(
+            payment_data=self.cleaned_data,
+            billing_data=self.cleaned_data,
+        )
+
+    class Meta:
+        model = CustomerPaymentProfile
 
 
 class HostedCIMProfileForm(forms.Form):
