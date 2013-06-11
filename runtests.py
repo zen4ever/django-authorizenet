@@ -16,7 +16,6 @@ if not settings.configured:
             'django.contrib.sessions',
             'tests',
             'authorizenet',
-            'authorizenet.customers',
         ),
         ROOT_URLCONF='tests.urls',
         STATIC_URL='/static/',

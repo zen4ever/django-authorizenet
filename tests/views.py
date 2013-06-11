@@ -1,5 +1,5 @@
 from django.http import HttpResponse
-from authorizenet.customers.views import PaymentProfileCreationView
+from authorizenet.views import PaymentProfileCreationView
 
 
 class CreateCustomerView(PaymentProfileCreationView):
