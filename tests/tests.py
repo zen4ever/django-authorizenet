@@ -5,57 +5,26 @@ from httmock import HTTMock
 
 from authorizenet.cim import extract_form_data, extract_payment_form_data, \
     add_profile
+from authorizenet.models import CustomerProfile, CustomerPaymentProfile
 
 from .utils import create_user, xml_to_dict
 from .mocks import cim_url_match, success_response
-
-
-create_profile_success_data = {
-    'createCustomerProfileRequest': {
-        'xmlns': 'AnetApi/xml/v1/schema/AnetApiSchema.xsd',
-        'profile': {
-            'merchantCustomerId': '42',
-            'paymentProfiles': {
-                'billTo': {
-                    'firstName': 'Danielle',
-                    'lastName': 'Thompson',
-                    'company': '',
-                    'address': '101 Broadway Avenue',
-                    'city': 'San Diego',
-                    'state': 'CA',
-                    'zip': '92101',
-                    'country': 'US'
-                },
-                'payment': {
-                    'creditCard': {
-                        'cardCode': '123',
-                        'cardNumber': "5586086832001747",
-                        'expirationDate': '2020-05'
-                    }
-                }
-            }
-        },
-        'merchantAuthentication': {
-            'transactionKey': 'key',
-            'name': 'loginid'
-        },
-    }
-}
+from .test_data import create_profile_success, update_profile_success
 
 
 class PaymentProfileCreationTests(LiveServerTestCase):
 
-    def test_create_new_customer_get(self):
-        create_user(username='billy', password='password')
+    def setUp(self):
+        self.user = create_user(id=42, username='billy', password='password')
         self.client.login(username='billy', password='password')
+
+    def test_create_new_customer_get(self):
         response = self.client.get('/customers/create')
         self.assertNotIn("This field is required", response.content)
         self.assertIn("Credit Card Number", response.content)
         self.assertIn("City", response.content)
 
     def test_create_new_customer_post_error(self):
-        create_user(username='billy', password='password')
-        self.client.login(username='billy', password='password')
         response = self.client.post('/customers/create')
         self.assertIn("This field is required", response.content)
         self.assertIn("Credit Card Number", response.content)
@@ -66,13 +35,61 @@ class PaymentProfileCreationTests(LiveServerTestCase):
         def create_customer_success(url, request):
             request_xml = parseString(request.body)
             self.assertEqual(xml_to_dict(request_xml),
-                             create_profile_success_data)
+                             create_profile_success)
             return success_response.format('createCustomerProfileResponse')
-        create_user(id=42, username='billy', password='password')
-        self.client.login(username='billy', password='password')
         self.maxDiff = None
         with HTTMock(create_customer_success):
             response = self.client.post('/customers/create', {
+                'card_number': "5586086832001747",
+                'expiration_date_0': "5",
+                'expiration_date_1': "2020",
+                'card_code': "123",
+                'first_name': "Danielle",
+                'last_name': "Thompson",
+                'address': "101 Broadway Avenue",
+                'city': "San Diego",
+                'state': "CA",
+                'country': "US",
+                'zip': "92101",
+            }, follow=True)
+        self.assertIn("success", response.content)
+
+
+class PaymentProfileUpdateTests(LiveServerTestCase):
+
+    def setUp(self):
+        self.user = create_user(id=42, username='billy', password='password')
+        profile = CustomerProfile(user=self.user, profile_id='6666')
+        profile.save()
+        self.payment_profile = CustomerPaymentProfile(
+            customer_profile=profile,
+            payment_profile_id='7777',
+        )
+        self.payment_profile.save()
+        self.client.login(username='billy', password='password')
+
+    def test_update_profile_get(self):
+        response = self.client.get('/customers/update')
+        self.assertNotIn("This field is required", response.content)
+        self.assertIn("Credit Card Number", response.content)
+        self.assertIn("City", response.content)
+
+    def test_update_profile_post_error(self):
+        response = self.client.post('/customers/update')
+        self.assertIn("This field is required", response.content)
+        self.assertIn("Credit Card Number", response.content)
+        self.assertIn("City", response.content)
+
+    def test_update_profile_post_success(self):
+        @cim_url_match
+        def create_customer_success(url, request):
+            request_xml = parseString(request.body)
+            self.assertEqual(xml_to_dict(request_xml),
+                             update_profile_success)
+            return success_response.format('updateCustomerProfileResponse')
+        self.maxDiff = None
+        with HTTMock(create_customer_success):
+            response = self.client.post('/customers/update', {
                 'card_number': "5586086832001747",
                 'expiration_date_0': "5",
                 'expiration_date_1': "2020",
@@ -129,7 +146,7 @@ class AddProfileTests(TestCase):
             'country': "US",
             'zip': "92101",
         }
-        self.request_data = create_profile_success_data
+        self.request_data = create_profile_success
 
     def test_add_profile_minimal(self):
         """Success test with minimal complexity"""

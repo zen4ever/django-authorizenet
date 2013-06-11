@@ -6,7 +6,7 @@ except ImportError:
 from django.conf import settings
 from django.shortcuts import render
 from django.views.decorators.csrf import csrf_exempt
-from django.views.generic.edit import CreateView
+from django.views.generic.edit import CreateView, UpdateView
 
 from authorizenet.forms import AIMPaymentForm, BillingAddressForm, CustomerPaymentForm
 from authorizenet.models import CustomerProfile, CustomerPaymentProfile
@@ -125,11 +125,21 @@ class AIMPayment(object):
         )
 
 
-class PaymentProfileCreationView(CreateView):
+class PaymentProfileCreateView(CreateView):
     template_name = 'authorizenet/create_payment_profile.html'
     form_class = CustomerPaymentForm
 
     def get_form_kwargs(self):
-        kwargs = super(PaymentProfileCreationView, self).get_form_kwargs()
+        kwargs = super(PaymentProfileCreateView, self).get_form_kwargs()
+        kwargs['user'] = self.request.user
+        return kwargs
+
+
+class PaymentProfileUpdateView(UpdateView):
+    template_name = 'authorizenet/update_payment_profile.html'
+    form_class = CustomerPaymentForm
+
+    def get_form_kwargs(self):
+        kwargs = super(PaymentProfileUpdateView, self).get_form_kwargs()
         kwargs['user'] = self.request.user
         return kwargs

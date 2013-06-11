@@ -120,10 +120,16 @@ class CustomerPaymentForm(CIMPaymentForm, BillingAddressForm):
             return None
 
     def save(self):
-        return self.create_payment_profile(
-            payment_data=self.cleaned_data,
-            billing_data=self.cleaned_data,
-        )
+        if not self.instance or self.instance.id is None:
+            return self.create_payment_profile(
+                payment_data=self.cleaned_data,
+                billing_data=self.cleaned_data,
+            )
+        else:
+            return self.instance.update(
+                payment_data=self.cleaned_data,
+                billing_data=self.cleaned_data,
+            )
 
     class Meta:
         model = CustomerPaymentProfile

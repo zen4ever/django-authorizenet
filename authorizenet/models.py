@@ -206,7 +206,8 @@ class CustomerProfile(models.Model):
 
     """Authorize.NET customer profile"""
 
-    user = models.ForeignKey('auth.User', unique=True)
+    user = models.OneToOneField('auth.User', unique=True,
+                                related_name='customer_profile')
     profile_id = models.CharField(max_length=50)
 
     def sync(self):
@@ -276,6 +277,7 @@ class CustomerPaymentProfile(models.Model):
                     v = "XXXX%s" % v[-4:]
                 setattr(self, k, v)
         self.save()
+        return self
 
     def __unicode__(self):
         return self.card_number
