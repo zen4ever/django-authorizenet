@@ -11,8 +11,8 @@ class PaymentProfileCreationView(FormView):
     def form_valid(self, form):
         """If the form is valid, save the payment profile"""
         self.create_payment_profile(
-            payment_data=form.payment_data,
-            billing_data=form.billing_data,
+            payment_data=form.cleaned_data,
+            billing_data=form.cleaned_data,
         )
         return super(PaymentProfileCreationView, self).form_valid(form)
 
