@@ -29,6 +29,7 @@ success_response = (
 
 
 def xml_to_dict(node):
+    """Recursively convert minidom XML node to dictionary"""
     node_data = {}
     if node.nodeType == node.TEXT_NODE:
         node_data = node.data
