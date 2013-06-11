@@ -7,6 +7,9 @@ sys.path.insert(0, abspath(dirname(__file__)))
 
 if not settings.configured:
     settings.configure(
+        AUTHNET_DEBUG=False,
+        AUTHNET_LOGIN_ID="loginid",
+        AUTHNET_TRANSACTION_KEY="key",
         INSTALLED_APPS=(
             'authorizenet.tests',
             'authorizenet',
