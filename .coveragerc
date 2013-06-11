@@ -1,0 +1,4 @@
+[run]
+include = authorizenet/*
+omit = authorizenet/tests/*
+branch = 1

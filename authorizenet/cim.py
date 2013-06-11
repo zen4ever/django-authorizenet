@@ -303,7 +303,7 @@ class BaseRequest(object):
             self.endpoint,
             data=self.document.toxml().encode('utf-8'),
             headers={'Content-Type': 'text/xml'})
-        response_xml = xml.dom.minidom.parse(response.text)
+        response_xml = xml.dom.minidom.parseString(response.text)
         self.process_response(response_xml)
         return self.create_response_object()
 
