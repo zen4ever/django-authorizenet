@@ -14,11 +14,11 @@ if not settings.configured:
             'django.contrib.contenttypes',
             'django.contrib.auth',
             'django.contrib.sessions',
-            'authorizenet.tests',
+            'tests',
             'authorizenet',
             'authorizenet.customers',
         ),
-        ROOT_URLCONF='authorizenet.tests.urls',
+        ROOT_URLCONF='tests.urls',
         STATIC_URL='/static/',
         DATABASES={'default': {'ENGINE': 'django.db.backends.sqlite3'}},
     )

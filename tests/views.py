@@ -3,7 +3,7 @@ from authorizenet.customers.views import PaymentProfileCreationView
 
 
 from httmock import HTTMock
-from authorizenet.tests.tests import cim_url_match, success_response
+from .mocks import cim_url_match, success_response
 
 
 @cim_url_match
