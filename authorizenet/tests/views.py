@@ -1,5 +1,5 @@
 from django.http import HttpResponse
-from ..views import PaymentProfileCreationView
+from authorizenet.customers.views import PaymentProfileCreationView
 
 
 from httmock import HTTMock

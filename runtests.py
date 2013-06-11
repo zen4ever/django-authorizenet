@@ -16,10 +16,9 @@ if not settings.configured:
             'django.contrib.sessions',
             'authorizenet.tests',
             'authorizenet',
-            'authorizenet.customers.customer_tests',
             'authorizenet.customers',
         ),
-        ROOT_URLCONF='authorizenet.customers.customer_tests.urls',
+        ROOT_URLCONF='authorizenet.tests.urls',
         STATIC_URL='/static/',
         DATABASES={'default': {'ENGINE': 'django.db.backends.sqlite3'}},
     )
@@ -27,6 +26,5 @@ if not settings.configured:
 
 def runtests():
     from django.test.simple import DjangoTestSuiteRunner
-    failures = DjangoTestSuiteRunner(failfast=False).run_tests([
-        'tests', 'customer_tests'])
+    failures = DjangoTestSuiteRunner(failfast=False).run_tests(['tests'])
     sys.exit(failures)
