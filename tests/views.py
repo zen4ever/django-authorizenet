@@ -16,9 +16,9 @@ class CreateCustomerView(PaymentProfileCreationView):
     def get_success_url(self):
         return '/success'
 
-    def forms_valid(self, *args, **kwargs):
+    def form_valid(self, *args, **kwargs):
         with HTTMock(create_customer_success):
-            return super(CreateCustomerView, self).forms_valid(*args, **kwargs)
+            return super(CreateCustomerView, self).form_valid(*args, **kwargs)
 
 
 def success_view(request):

@@ -91,6 +91,23 @@ class CIMPaymentForm(forms.Form):
     card_code = CreditCardCVV2Field(label="Card Security Code")
 
 
+def create_customer_form(payment_form, address_form=None, shipping_form=None):
+    """Create new form class from given parent form classes"""
+    def fields_from_form(form):
+        return lambda self: dict((k, v) for (k, v) in self.cleaned_data.items()
+                                 if k in form.base_fields)
+    bases = tuple(c for c in (payment_form, address_form, shipping_form)
+                  if c is not None)
+    return type('CustomerPaymentForm', bases, {
+        'billing_data': property(fields_from_form(address_form)),
+        'payment_data': property(fields_from_form(payment_form)),
+        'shipping_data': property(fields_from_form(shipping_form)),
+    })
+
+
+CustomerPaymentForm = create_customer_form(CIMPaymentForm, BillingAddressForm)
+
+
 class HostedCIMProfileForm(forms.Form):
     token = forms.CharField(widget=forms.HiddenInput)
     def __init__(self, token, *args, **kwargs):

@@ -1,59 +1,20 @@
-from django.http import HttpResponseRedirect
-from django.views.generic import TemplateView
+from django.views.generic.edit import FormView
 
-from authorizenet.forms import CIMPaymentForm, BillingAddressForm
+from authorizenet.forms import CustomerPaymentForm
 from .models import CustomerProfile, CustomerPaymentProfile
 
 
-class PaymentProfileCreationView(TemplateView):
+class PaymentProfileCreationView(FormView):
     template_name = 'authorizenet/payment_profile_creation.html'
-    payment_form_class = CIMPaymentForm
-    billing_form_class = BillingAddressForm
+    form_class = CustomerPaymentForm
 
-    def post(self, *args, **kwargs):
-        payment_form = self.get_payment_form()
-        billing_form = self.get_billing_form()
-        if payment_form.is_valid() and billing_form.is_valid():
-            return self.forms_valid(payment_form, billing_form)
-        else:
-            return self.forms_invalid(payment_form, billing_form)
-
-    def get(self, *args, **kwargs):
-        return self.render_to_response(self.get_context_data(
-            payment_form=self.get_payment_form(),
-            billing_form=self.get_billing_form(),
-        ))
-
-    def forms_valid(self, payment_form, billing_form):
-        """If the form is valid, save the payment profile and redirect"""
+    def form_valid(self, form):
+        """If the form is valid, save the payment profile"""
         self.create_payment_profile(
-            payment_data=payment_form.cleaned_data,
-            billing_data=billing_form.cleaned_data,
+            payment_data=form.payment_data,
+            billing_data=form.billing_data,
         )
-        return HttpResponseRedirect(self.get_success_url())
-
-    def forms_invalid(self, payment_form, billing_form):
-        """If the form is invalid, show the page again"""
-        return self.render_to_response(self.get_context_data(
-            payment_form=payment_form,
-            billing_form=billing_form,
-        ))
-
-    def get_payment_form(self):
-        """Returns an instance of the payment form"""
-        if self.request.method in ('POST', 'PUT'):
-            kwargs = {'data': self.request.POST}
-        else:
-            kwargs = {}
-        return self.payment_form_class(**kwargs)
-
-    def get_billing_form(self):
-        """Returns an instance of the billing form"""
-        if self.request.method in ('POST', 'PUT'):
-            kwargs = {'data': self.request.POST}
-        else:
-            kwargs = {}
-        return self.billing_form_class(**kwargs)
+        return super(PaymentProfileCreationView, self).form_valid(form)
 
     def create_payment_profile(self, **kwargs):
         """Create and return payment profile"""
