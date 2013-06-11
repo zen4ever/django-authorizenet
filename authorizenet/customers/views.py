@@ -5,7 +5,7 @@ from .models import CustomerProfile, CustomerPaymentProfile
 
 
 class PaymentProfileCreationView(FormView):
-    template_name = 'authorizenet/payment_profile_creation.html'
+    template_name = 'authorizenet/create_payment_profile.html'
     form_class = CustomerPaymentForm
 
     def form_valid(self, form):
