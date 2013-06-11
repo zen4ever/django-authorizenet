@@ -24,3 +24,13 @@ Add ``authorizenet`` to ``INSTALLED_APPS`` in your settings file:
         ...
         'authorizenet',
     )
+
+The following settings are required:
+
+.. code-block:: python
+
+    AUTHNET_DEBUG = True
+
+    AUTHNET_LOGIN_ID = "yOuRl0g1nID"
+
+    AUTHNET_TRANSACTION_KEY = "Tr4n5aCti0nK3y"
