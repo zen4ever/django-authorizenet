@@ -10,10 +10,8 @@ class PaymentProfileCreationView(FormView):
 
     def form_valid(self, form):
         """If the form is valid, save the payment profile"""
-        self.create_payment_profile(
-            payment_data=form.cleaned_data,
-            billing_data=form.cleaned_data,
-        )
+        data = form.cleaned_data
+        self.create_payment_profile(payment_data=data, billing_data=data)
         return super(PaymentProfileCreationView, self).form_valid(form)
 
     def create_payment_profile(self, **kwargs):
@@ -33,6 +31,3 @@ class PaymentProfileCreationView(FormView):
             return CustomerProfile.objects.get(user=self.request.user)
         except CustomerProfile.DoesNotExist:
             return None
-
-    def get_context_data(self, **kwargs):
-        return kwargs
