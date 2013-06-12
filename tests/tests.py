@@ -87,7 +87,6 @@ class PaymentProfileUpdateTests(LiveServerTestCase):
             self.assertEqual(xml_to_dict(request_xml),
                              update_profile_success)
             return success_response.format('updateCustomerProfileResponse')
-        self.maxDiff = None
         with HTTMock(create_customer_success):
             response = self.client.post('/customers/update', {
                 'card_number': "5586086832001747",
@@ -103,6 +102,23 @@ class PaymentProfileUpdateTests(LiveServerTestCase):
                 'zip': "92101",
             }, follow=True)
         self.assertIn("success", response.content)
+        payment_profile = self.user.customer_profile.payment_profiles.get()
+        self.assertEqual(payment_profile.raw_data(), {
+            'id': payment_profile.id,
+            'customer_profile': self.user.customer_profile.id,
+            'payment_profile_id': '7777',
+            'card_number': 'XXXX1747',
+            'first_name': 'Danielle',
+            'last_name': 'Thompson',
+            'company': '',
+            'fax': '',
+            'phone': '',
+            'address': '101 Broadway Avenue',
+            'city': 'San Diego',
+            'state': 'CA',
+            'country': 'US',
+            'zip': '92101',
+        })
 
 
 class ExtractFormDataTests(TestCase):
