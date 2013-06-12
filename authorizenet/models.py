@@ -1,7 +1,7 @@
 from django.db import models
 from django.forms.models import model_to_dict
 
-from .cim import get_profile, update_payment_profile, delete_payment_profile
+from .cim import get_profile, update_payment_profile, create_payment_profile, delete_payment_profile
 
 from .managers import CustomerProfileManager, CustomerPaymentProfileManager
 from .exceptions import BillingError
@@ -230,6 +230,10 @@ class CustomerPaymentProfile(models.Model):
 
     """Authorize.NET customer payment profile"""
 
+    BILLING_FIELDS = ['first_name', 'last_name', 'company', 'address', 'city',
+                      'state', 'zip', 'country', 'phone_number', 'fax_number']
+    PAYMENT_FIELDS = ['card_number', 'expiration_date', 'card_code']
+
     customer_profile = models.ForeignKey('CustomerProfile',
                                          related_name='payment_profiles')
     first_name = models.CharField(max_length=50, blank=True)
@@ -240,10 +244,44 @@ class CustomerPaymentProfile(models.Model):
     state = models.CharField(max_length=40, blank=True)
     zip = models.CharField(max_length=20, blank=True, verbose_name="ZIP")
     country = models.CharField(max_length=60, blank=True)
-    phone = models.CharField(max_length=25, blank=True)
-    fax = models.CharField(max_length=25, blank=True)
+    phone_number = models.CharField(max_length=25, blank=True)
+    fax_number = models.CharField(max_length=25, blank=True)
     payment_profile_id = models.CharField(max_length=50)
     card_number = models.CharField(max_length=16, blank=True)
+    expiration_date = None
+    card_code = None
+
+    def __init__(self, *args, **kwargs):
+        self.card_code = kwargs.pop('card_code', None)
+        self.expiration_date = kwargs.pop('expiration_date', None)
+        return super(CustomerPaymentProfile, self).__init__(*args, **kwargs)
+
+    def save(self, *args, **kwargs):
+        if kwargs.pop('sync', True):
+            self.push_to_server()
+        self.expiration_date = None
+        self.card_code = None
+        self.card_number = "XXXX%s" % self.card_number[-4:]
+        super(CustomerPaymentProfile, self).save(*args, **kwargs)
+
+    def push_to_server(self):
+        if self.payment_profile_id:
+            response = update_payment_profile(
+                self.customer_profile.profile_id,
+                self.payment_profile_id,
+                self.payment_data,
+                self.billing_data,
+            )
+        else:
+            output = create_payment_profile(
+                self.customer_profile.profile_id,
+                self.payment_data,
+                self.billing_data,
+            )
+            response = output['response']
+            self.payment_profile_id = output['payment_profile_id']
+        if not response.success:
+            raise BillingError()
 
     def raw_data(self):
         """Return data suitable for use in payment and billing forms"""
@@ -262,23 +300,20 @@ class CustomerPaymentProfile(models.Model):
         delete_payment_profile(self.customer_profile.profile_id,
                                self.payment_profile_id)
 
-    def update(self, payment_data, billing_data):
+    def update(self, **data):
         """Update the customer payment profile remotely and locally"""
-        response = update_payment_profile(self.customer_profile.profile_id,
-                                          self.payment_profile_id,
-                                          payment_data, billing_data)
-        if not response.success:
-            raise BillingError()
-        for k, v in billing_data.items():
-            setattr(self, k, v)
-        for k, v in payment_data.items():
-            # Do not store expiration date and mask credit card number
-            if k != 'expiration_date' and k != 'card_code':
-                if k == 'card_number':
-                    v = "XXXX%s" % v[-4:]
-                setattr(self, k, v)
+        for key, value in data.items():
+            setattr(self, key, value)
         self.save()
         return self
+
+    @property
+    def payment_data(self):
+        return dict((k, getattr(self, k)) for k in self.PAYMENT_FIELDS)
+
+    @property
+    def billing_data(self):
+        return dict((k, getattr(self, k)) for k in self.BILLING_FIELDS)
 
     def __unicode__(self):
         return self.card_number

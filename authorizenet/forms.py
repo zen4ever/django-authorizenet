@@ -101,15 +101,15 @@ class CustomerPaymentForm(CIMPaymentForm, BillingAddressForm):
         self.user = kwargs.pop('user', None)
         return super(CustomerPaymentForm, self).__init__(*args, **kwargs)
 
-    def create_payment_profile(self, **kwargs):
+    def create_payment_profile(self):
         """Create and return payment profile"""
         customer_profile = self.get_customer_profile()
         if customer_profile:
             return CustomerPaymentProfile.objects.create(
-                customer_profile=customer_profile, **kwargs)
+                customer_profile=customer_profile, **self.cleaned_data)
         else:
             customer_profile = CustomerProfile.objects.create(
-                user=self.user, **kwargs)
+                user=self.user, **self.cleaned_data)
             return customer_profile.payment_profiles.get()
 
     def get_customer_profile(self):
@@ -121,18 +121,9 @@ class CustomerPaymentForm(CIMPaymentForm, BillingAddressForm):
 
     def save(self):
         if not self.instance or self.instance.id is None:
-            return self.create_payment_profile(
-                payment_data=self.cleaned_data,
-                billing_data=self.cleaned_data,
-            )
+            return self.create_payment_profile()
         else:
-            return self.instance.update(
-                payment_data=self.cleaned_data,
-                billing_data=self.cleaned_data,
-            )
-
-    class Meta:
-        model = CustomerPaymentProfile
+            return self.instance.update(**self.cleaned_data)
 
 
 class HostedCIMProfileForm(forms.Form):

@@ -8,8 +8,8 @@ from authorizenet.cim import extract_form_data, extract_payment_form_data, \
 from authorizenet.models import CustomerProfile, CustomerPaymentProfile
 
 from .utils import create_user, xml_to_dict
-from .mocks import cim_url_match, success_response
-from .test_data import create_profile_success, update_profile_success
+from .mocks import cim_url_match, customer_profile_success, payment_profile_success
+from .test_data import create_profile_success, update_profile_success, create_payment_profile_success
 
 
 class PaymentProfileCreationTests(LiveServerTestCase):
@@ -34,11 +34,33 @@ class PaymentProfileCreationTests(LiveServerTestCase):
         @cim_url_match
         def create_customer_success(url, request):
             request_xml = parseString(request.body)
-            self.assertEqual(xml_to_dict(request_xml),
-                             create_profile_success)
-            return success_response.format('createCustomerProfileResponse')
-        self.maxDiff = None
+            self.assertEqual(xml_to_dict(request_xml), create_profile_success)
+            return customer_profile_success.format('createCustomerProfileResponse')
         with HTTMock(create_customer_success):
+            response = self.client.post('/customers/create', {
+                'card_number': "5586086832001747",
+                'expiration_date_0': "5",
+                'expiration_date_1': "2020",
+                'card_code': "123",
+                'first_name': "Danielle",
+                'last_name': "Thompson",
+                'address': "101 Broadway Avenue",
+                'city': "San Diego",
+                'state': "CA",
+                'country': "US",
+                'zip': "92101",
+            }, follow=True)
+        self.assertIn("success", response.content)
+
+    def test_create_new_payment_profile_post_success(self):
+        @cim_url_match
+        def request_handler(url, request):
+            request_xml = parseString(request.body)
+            self.assertEqual(xml_to_dict(request_xml),
+                             create_payment_profile_success)
+            return payment_profile_success.format('createCustomerPaymentProfileResponse')
+        CustomerProfile.objects.create(user=self.user, profile_id='6666', sync=False)
+        with HTTMock(request_handler):
             response = self.client.post('/customers/create', {
                 'card_number': "5586086832001747",
                 'expiration_date_0': "5",
@@ -65,7 +87,7 @@ class PaymentProfileUpdateTests(LiveServerTestCase):
             customer_profile=profile,
             payment_profile_id='7777',
         )
-        self.payment_profile.save()
+        self.payment_profile.save(sync=False)
         self.client.login(username='billy', password='password')
 
     def test_update_profile_get(self):
@@ -86,7 +108,7 @@ class PaymentProfileUpdateTests(LiveServerTestCase):
             request_xml = parseString(request.body)
             self.assertEqual(xml_to_dict(request_xml),
                              update_profile_success)
-            return success_response.format('updateCustomerProfileResponse')
+            return customer_profile_success.format('updateCustomerProfileResponse')
         with HTTMock(create_customer_success):
             response = self.client.post('/customers/update', {
                 'card_number': "5586086832001747",
@@ -111,8 +133,8 @@ class PaymentProfileUpdateTests(LiveServerTestCase):
             'first_name': 'Danielle',
             'last_name': 'Thompson',
             'company': '',
-            'fax': '',
-            'phone': '',
+            'fax_number': '',
+            'phone_number': '',
             'address': '101 Broadway Avenue',
             'city': 'San Diego',
             'state': 'CA',
@@ -170,7 +192,7 @@ class AddProfileTests(TestCase):
         def request_handler(url, request):
             request_xml = parseString(request.body)
             self.assertEqual(xml_to_dict(request_xml), self.request_data)
-            return success_response.format('createCustomerProfileResponse')
+            return customer_profile_success.format('createCustomerProfileResponse')
         with HTTMock(request_handler):
             result = add_profile(42, self.payment_form_data,
                                  self.billing_form_data)
