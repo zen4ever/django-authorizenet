@@ -92,36 +92,32 @@ class CIMPaymentForm(forms.Form):
     card_code = CreditCardCVV2Field(label="Card Security Code")
 
 
-class CustomerPaymentForm(CIMPaymentForm, BillingAddressForm):
+class CustomerPaymentForm(forms.ModelForm):
 
     """Base customer payment form without shipping address"""
 
+    country = CountryField(label="Country", initial="US")
+    card_number = CreditCardField(label="Credit Card Number")
+    expiration_date = CreditCardExpiryField(label="Expiration Date")
+    card_code = CreditCardCVV2Field(label="Card Security Code")
+
     def __init__(self, *args, **kwargs):
-        self.instance = kwargs.pop('instance', None)
         self.user = kwargs.pop('user', None)
         return super(CustomerPaymentForm, self).__init__(*args, **kwargs)
 
-    def create_payment_profile(self):
-        """Create and return payment profile"""
-        kwargs = {'user': self.user}
-        kwargs.update(self.cleaned_data)
-        customer_profile = self.get_customer_profile()
-        if customer_profile:
-            kwargs['customer_profile'] = customer_profile
-        return CustomerPaymentProfile.objects.create(**kwargs)
-
-    def get_customer_profile(self):
-        """Return customer profile or ``None`` if none exists"""
-        try:
-            return CustomerProfile.objects.get(user=self.user)
-        except CustomerProfile.DoesNotExist:
-            return None
-
     def save(self):
-        if not self.instance or self.instance.id is None:
-            return self.create_payment_profile()
-        else:
-            return self.instance.update(**self.cleaned_data)
+        instance = super(CustomerPaymentForm, self).save(commit=False)
+        instance.user = self.user
+        instance.expiration_date = self.cleaned_data['expiration_date']
+        instance.card_code = self.cleaned_data['card_code']
+        instance.save()
+        return instance
+
+    class Meta:
+        model = CustomerPaymentProfile
+        fields = ('first_name', 'last_name', 'company', 'address', 'city',
+                  'state', 'country', 'zip', 'card_number',
+                  'expiration_date', 'card_code')
 
 
 class HostedCIMProfileForm(forms.Form):

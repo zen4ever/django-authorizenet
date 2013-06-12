@@ -263,6 +263,12 @@ class CustomerPaymentProfile(models.Model):
         super(CustomerPaymentProfile, self).save(*args, **kwargs)
 
     def push_to_server(self):
+        if not self.customer_profile_id:
+            try:
+                self.customer_profile = CustomerProfile.objects.get(
+                    user=self.user)
+            except CustomerProfile.DoesNotExist:
+                pass
         if self.payment_profile_id:
             response = update_payment_profile(
                 self.customer_profile.profile_id,
