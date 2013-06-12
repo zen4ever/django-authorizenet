@@ -15,7 +15,7 @@ class CustomerProfileManager(models.Manager):
         kwargs = data
         sync = kwargs.pop('sync', True)
         kwargs = {
-            'user': kwargs.pop('user', None),
+            'user': kwargs.get('user', None),
             'profile_id': kwargs.pop('profile_id', None),
         }
 

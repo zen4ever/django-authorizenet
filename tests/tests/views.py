@@ -83,6 +83,7 @@ class PaymentProfileUpdateTests(LiveServerTestCase):
         profile = CustomerProfile(user=self.user, profile_id='6666')
         profile.save()
         self.payment_profile = CustomerPaymentProfile(
+            user=self.user,
             customer_profile=profile,
             payment_profile_id='7777',
         )
@@ -124,11 +125,14 @@ class PaymentProfileUpdateTests(LiveServerTestCase):
             }, follow=True)
         self.assertIn("success", response.content)
         payment_profile = self.user.customer_profile.payment_profiles.get()
-        self.assertEqual(payment_profile.raw_data(), {
+        self.assertEqual(payment_profile.raw_data, {
             'id': payment_profile.id,
             'customer_profile': self.user.customer_profile.id,
+            'user': self.user.id,
             'payment_profile_id': '7777',
             'card_number': 'XXXX1747',
+            'expiration_date': None,
+            'card_code': None,
             'first_name': 'Danielle',
             'last_name': 'Thompson',
             'company': '',

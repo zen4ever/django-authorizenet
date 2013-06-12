@@ -106,7 +106,9 @@ class CustomerPaymentForm(CIMPaymentForm, BillingAddressForm):
         customer_profile = self.get_customer_profile()
         if customer_profile:
             return CustomerPaymentProfile.objects.create(
-                customer_profile=customer_profile, **self.cleaned_data)
+                customer_profile=customer_profile,
+                user=self.user,
+                **self.cleaned_data)
         else:
             customer_profile = CustomerProfile.objects.create(
                 user=self.user, **self.cleaned_data)
