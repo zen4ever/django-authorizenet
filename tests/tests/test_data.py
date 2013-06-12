@@ -8,6 +8,8 @@ create_profile_success = {
                     'firstName': 'Danielle',
                     'lastName': 'Thompson',
                     'company': '',
+                    'phoneNumber': '',
+                    'faxNumber': '',
                     'address': '101 Broadway Avenue',
                     'city': 'San Diego',
                     'state': 'CA',

@@ -1,3 +1,4 @@
+from copy import deepcopy
 from datetime import datetime
 from django.test import TestCase
 from xml.dom.minidom import parseString
@@ -52,7 +53,10 @@ class AddProfileTests(TestCase):
             'country': "US",
             'zip': "92101",
         }
-        self.request_data = create_profile_success
+        self.request_data = deepcopy(create_profile_success)
+        profile = self.request_data['createCustomerProfileRequest']['profile']
+        del profile['paymentProfiles']['billTo']['phoneNumber']
+        del profile['paymentProfiles']['billTo']['faxNumber']
 
     def test_add_profile_minimal(self):
         """Success test with minimal complexity"""

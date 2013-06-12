@@ -270,7 +270,7 @@ class CustomerPaymentProfile(models.Model):
                 self.raw_data,
                 self.raw_data,
             )
-        elif self.customer_profile:
+        elif self.customer_profile_id:
             output = create_payment_profile(
                 self.customer_profile.profile_id,
                 self.raw_data,
@@ -280,12 +280,17 @@ class CustomerPaymentProfile(models.Model):
             self.payment_profile_id = output['payment_profile_id']
         else:
             output = add_profile(
-                self.user,
+                self.user.id,
                 self.raw_data,
                 self.raw_data,
             )
             response = output['response']
-            self.payment_profile_id = output['payment_profile_id']
+            self.customer_profile = CustomerProfile.objects.create(
+                user=self.user,
+                profile_id=output['profile_id'],
+                sync=False,
+            )
+            self.payment_profile_id = output['payment_profile_ids'][0]
         if not response.success:
             raise BillingError()
 

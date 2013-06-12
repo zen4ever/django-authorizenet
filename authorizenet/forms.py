@@ -103,16 +103,12 @@ class CustomerPaymentForm(CIMPaymentForm, BillingAddressForm):
 
     def create_payment_profile(self):
         """Create and return payment profile"""
+        kwargs = {'user': self.user}
+        kwargs.update(self.cleaned_data)
         customer_profile = self.get_customer_profile()
         if customer_profile:
-            return CustomerPaymentProfile.objects.create(
-                customer_profile=customer_profile,
-                user=self.user,
-                **self.cleaned_data)
-        else:
-            customer_profile = CustomerProfile.objects.create(
-                user=self.user, **self.cleaned_data)
-            return customer_profile.payment_profiles.get()
+            kwargs['customer_profile'] = customer_profile
+        return CustomerPaymentProfile.objects.create(**kwargs)
 
     def get_customer_profile(self):
         """Return customer profile or ``None`` if none exists"""
