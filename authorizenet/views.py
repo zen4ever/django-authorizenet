@@ -131,7 +131,7 @@ class PaymentProfileCreateView(CreateView):
 
     def get_form_kwargs(self):
         kwargs = super(PaymentProfileCreateView, self).get_form_kwargs()
-        kwargs['user'] = self.request.user
+        kwargs['customer'] = self.request.user
         return kwargs
 
 
@@ -141,5 +141,5 @@ class PaymentProfileUpdateView(UpdateView):
 
     def get_form_kwargs(self):
         kwargs = super(PaymentProfileUpdateView, self).get_form_kwargs()
-        kwargs['user'] = self.request.user
+        kwargs['customer'] = self.request.user
         return kwargs

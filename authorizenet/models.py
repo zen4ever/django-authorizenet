@@ -1,5 +1,6 @@
 from django.db import models
 from django.forms.models import model_to_dict
+from django.conf import settings
 
 from .cim import add_profile, get_profile, update_payment_profile, \
     create_payment_profile, delete_payment_profile
@@ -208,8 +209,8 @@ class CustomerProfile(models.Model):
 
     """Authorize.NET customer profile"""
 
-    user = models.OneToOneField('auth.User', unique=True,
-                                related_name='customer_profile')
+    customer = models.OneToOneField(settings.AUTHNET_CUSTOMER_MODEL,
+                                    related_name='customer_profile')
     profile_id = models.CharField(max_length=50)
 
     def sync(self):
@@ -231,7 +232,8 @@ class CustomerPaymentProfile(models.Model):
 
     """Authorize.NET customer payment profile"""
 
-    user = models.ForeignKey('auth.User', related_name='payment_profiles')
+    customer = models.ForeignKey(settings.AUTHNET_CUSTOMER_MODEL,
+                                 related_name='payment_profiles')
     customer_profile = models.ForeignKey('CustomerProfile',
                                          related_name='payment_profiles')
     payment_profile_id = models.CharField(max_length=50)
@@ -266,7 +268,7 @@ class CustomerPaymentProfile(models.Model):
         if not self.customer_profile_id:
             try:
                 self.customer_profile = CustomerProfile.objects.get(
-                    user=self.user)
+                    customer=self.customer)
             except CustomerProfile.DoesNotExist:
                 pass
         if self.payment_profile_id:
@@ -286,13 +288,13 @@ class CustomerPaymentProfile(models.Model):
             self.payment_profile_id = output['payment_profile_id']
         else:
             output = add_profile(
-                self.user.id,
+                self.customer.id,
                 self.raw_data,
                 self.raw_data,
             )
             response = output['response']
             self.customer_profile = CustomerProfile.objects.create(
-                user=self.user,
+                customer=self.customer,
                 profile_id=output['profile_id'],
                 sync=False,
             )

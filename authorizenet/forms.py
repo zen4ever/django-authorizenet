@@ -102,12 +102,12 @@ class CustomerPaymentForm(forms.ModelForm):
     card_code = CreditCardCVV2Field(label="Card Security Code")
 
     def __init__(self, *args, **kwargs):
-        self.user = kwargs.pop('user', None)
+        self.customer = kwargs.pop('customer', None)
         return super(CustomerPaymentForm, self).__init__(*args, **kwargs)
 
     def save(self):
         instance = super(CustomerPaymentForm, self).save(commit=False)
-        instance.user = self.user
+        instance.customer = self.customer
         instance.expiration_date = self.cleaned_data['expiration_date']
         instance.card_code = self.cleaned_data['card_code']
         instance.save()

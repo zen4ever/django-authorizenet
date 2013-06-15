@@ -15,13 +15,13 @@ class CustomerProfileManager(models.Manager):
         kwargs = data
         sync = kwargs.pop('sync', True)
         kwargs = {
-            'user': kwargs.get('user', None),
+            'customer': kwargs.get('customer', None),
             'profile_id': kwargs.pop('profile_id', None),
         }
 
         # Create the customer profile with Authorize.NET CIM call
         if sync:
-            output = add_profile(kwargs['user'].pk, data, data)
+            output = add_profile(kwargs['customer'].pk, data, data)
             if not output['response'].success:
                 raise BillingError("Error creating customer profile")
             kwargs['profile_id'] = output['profile_id']

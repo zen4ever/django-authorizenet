@@ -58,7 +58,7 @@ class PaymentProfileCreationTests(LiveServerTestCase):
             self.assertEqual(xml_to_dict(request_xml),
                              create_payment_profile_success)
             return payment_profile_success.format('createCustomerPaymentProfileResponse')
-        CustomerProfile.objects.create(user=self.user, profile_id='6666', sync=False)
+        CustomerProfile.objects.create(customer=self.user, profile_id='6666', sync=False)
         with HTTMock(request_handler):
             response = self.client.post('/customers/create', {
                 'card_number': "5586086832001747",
@@ -80,10 +80,10 @@ class PaymentProfileUpdateTests(LiveServerTestCase):
 
     def setUp(self):
         self.user = create_user(id=42, username='billy', password='password')
-        profile = CustomerProfile(user=self.user, profile_id='6666')
+        profile = CustomerProfile(customer=self.user, profile_id='6666')
         profile.save()
         self.payment_profile = CustomerPaymentProfile(
-            user=self.user,
+            customer=self.user,
             customer_profile=profile,
             payment_profile_id='7777',
         )
@@ -128,7 +128,7 @@ class PaymentProfileUpdateTests(LiveServerTestCase):
         self.assertEqual(payment_profile.raw_data, {
             'id': payment_profile.id,
             'customer_profile': self.user.customer_profile.id,
-            'user': self.user.id,
+            'customer': self.user.id,
             'payment_profile_id': '7777',
             'card_number': 'XXXX1747',
             'expiration_date': None,
