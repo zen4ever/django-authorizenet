@@ -109,7 +109,7 @@ class CustomerPaymentForm(forms.ModelForm):
         instance = super(CustomerPaymentForm, self).save(commit=False)
         instance.customer = self.customer
         instance.expiration_date = self.cleaned_data['expiration_date']
-        instance.card_code = self.cleaned_data['card_code']
+        instance.card_code = self.cleaned_data.get('card_code')
         instance.save()
         return instance
 
