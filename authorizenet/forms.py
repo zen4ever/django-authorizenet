@@ -2,7 +2,7 @@ from django import forms
 from django.conf import settings
 from authorizenet.fields import CreditCardField, CreditCardExpiryField, \
         CreditCardCVV2Field, CountryField
-from authorizenet.models import CustomerProfile, CustomerPaymentProfile
+from authorizenet.models import CustomerPaymentProfile
 
 
 class SIMPaymentForm(forms.Form):
