@@ -10,7 +10,6 @@ if not settings.configured:
         AUTHNET_DEBUG=False,
         AUTHNET_LOGIN_ID="loginid",
         AUTHNET_TRANSACTION_KEY="key",
-        AUTHNET_CUSTOMER_MODEL='auth.User',
         INSTALLED_APPS=(
             'django.contrib.contenttypes',
             'django.contrib.auth',

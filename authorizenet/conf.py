@@ -1,6 +1,6 @@
 """Application-specific settings for django-authorizenet"""
 
-from django.conf import settings as defined_settings
+from django.conf import settings as django_settings
 
 
 class Settings(object):
@@ -18,6 +18,8 @@ class Settings(object):
                 'MD5_HASH'}
 
     class Default:
+        CUSTOMER_MODEL = getattr(
+            django_settings, 'AUTH_USER_MODEL', "auth.User")
         DELIM_CHAR = "|"
         FORCE_TEST_REQUEST = False
         EMAIL_CUSTOMER = None
@@ -30,7 +32,7 @@ class Settings(object):
         if name not in self.settings:
             raise AttributeError("Setting %s not understood" % name)
         try:
-            return getattr(defined_settings, self.prefix + name)
+            return getattr(django_settings, self.prefix + name)
         except AttributeError:
             return getattr(self.defaults, name)
 
