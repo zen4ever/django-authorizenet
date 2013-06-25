@@ -81,7 +81,7 @@ class PaymentProfileUpdateTests(LiveServerTestCase):
     def setUp(self):
         self.user = create_user(id=42, username='billy', password='password')
         profile = CustomerProfile(customer=self.user, profile_id='6666')
-        profile.save()
+        profile.save(sync=False)
         self.payment_profile = CustomerPaymentProfile(
             customer=self.user,
             customer_profile=profile,

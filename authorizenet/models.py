@@ -3,7 +3,7 @@ from django.forms.models import model_to_dict
 
 from .conf import settings
 from .cim import add_profile, get_profile, update_payment_profile, \
-    create_payment_profile, delete_payment_profile
+    create_payment_profile, delete_profile, delete_payment_profile
 
 from .managers import CustomerProfileManager, CustomerPaymentProfileManager
 from .exceptions import BillingError
@@ -213,6 +213,26 @@ class CustomerProfile(models.Model):
                                     related_name='customer_profile')
     profile_id = models.CharField(max_length=50)
 
+    def save(self, *args, **kwargs):
+        data = kwargs.pop('data', {})
+        if not self.id and kwargs.pop('sync', True):
+            self.push_to_server(data)
+        super(CustomerProfile, self).save(*args, **kwargs)
+
+    def delete(self):
+        """Delete the customer profile remotely and locally"""
+        response = delete_profile(self.profile_id)
+        if not response.success:
+            raise BillingError("Error deleting customer profile")
+        super(CustomerProfile, self).delete()
+
+    def push_to_server(self, data):
+        output = add_profile(self.customer.pk, data, data)
+        if not output['response'].success:
+            raise BillingError("Error creating customer profile")
+        self.profile_id = output['profile_id']
+        self.payment_profile_ids = output['payment_profile_ids']
+
     def sync(self):
         """Overwrite local customer profile data with remote data"""
         response, payment_profiles = get_profile(self.profile_id)
@@ -320,8 +340,11 @@ class CustomerPaymentProfile(models.Model):
 
     def delete(self):
         """Delete the customer payment profile remotely and locally"""
-        delete_payment_profile(self.customer_profile.profile_id,
-                               self.payment_profile_id)
+        response = delete_payment_profile(self.customer_profile.profile_id,
+                                          self.payment_profile_id)
+        if not response.success:
+            raise BillingError("Error deleting customer payment profile")
+        return super(CustomerPaymentProfile, self).delete()
 
     def update(self, **data):
         """Update the customer payment profile remotely and locally"""
