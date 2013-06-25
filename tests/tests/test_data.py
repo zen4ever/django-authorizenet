@@ -1,3 +1,17 @@
+create_empty_profile_success = {
+    'createCustomerProfileRequest': {
+        'xmlns': 'AnetApi/xml/v1/schema/AnetApiSchema.xsd',
+        'profile': {
+            'merchantCustomerId': '42',
+        },
+        'merchantAuthentication': {
+            'transactionKey': 'key',
+            'name': 'loginid',
+        },
+    }
+}
+
+
 create_profile_success = {
     'createCustomerProfileRequest': {
         'xmlns': 'AnetApi/xml/v1/schema/AnetApiSchema.xsd',
@@ -97,4 +111,16 @@ create_payment_profile_success = {
             'name': 'loginid',
         },
     }
+}
+
+
+delete_profile_success = {
+    'deleteCustomerProfileRequest': {
+        'xmlns': u'AnetApi/xml/v1/schema/AnetApiSchema.xsd',
+        'customerProfileId': '6666',
+        'merchantAuthentication': {
+            'transactionKey': 'key',
+            'name': 'loginid'
+        },
+    },
 }
