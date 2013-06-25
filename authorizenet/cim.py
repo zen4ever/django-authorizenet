@@ -2,7 +2,7 @@ import re
 import xml.dom.minidom
 
 from django.utils.datastructures import SortedDict
-from django.conf import settings
+from authorizenet.conf import settings
 import requests
 
 from authorizenet import AUTHNET_CIM_URL, AUTHNET_TEST_CIM_URL
@@ -264,7 +264,7 @@ class BaseRequest(object):
 
     def __init__(self, action):
         self.create_base_document(action)
-        if settings.AUTHNET_DEBUG:
+        if settings.DEBUG:
             self.endpoint = AUTHNET_TEST_CIM_URL
         else:
             self.endpoint = AUTHNET_CIM_URL
@@ -284,9 +284,9 @@ class BaseRequest(object):
 
         self.document = doc
         authentication = doc.createElement("merchantAuthentication")
-        name = self.get_text_node("name", settings.AUTHNET_LOGIN_ID)
+        name = self.get_text_node("name", settings.LOGIN_ID)
         key = self.get_text_node("transactionKey",
-                                 settings.AUTHNET_TRANSACTION_KEY)
+                                 settings.TRANSACTION_KEY)
         authentication.appendChild(name)
         authentication.appendChild(key)
         root.appendChild(authentication)
@@ -695,7 +695,7 @@ class CreateTransactionRequest(BaseRequest):
         if delimiter:
             self.delimiter = delimiter
         else:
-            self.delimiter = getattr(settings, 'AUTHNET_DELIM_CHAR', "|")
+            self.delimiter = settings.DELIM_CHAR
         self.add_transaction_node()
         self.add_extra_options()
         if order_info:

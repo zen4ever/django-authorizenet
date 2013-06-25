@@ -1,7 +1,7 @@
 from django.db import models
 from django.forms.models import model_to_dict
-from django.conf import settings
 
+from .conf import settings
 from .cim import add_profile, get_profile, update_payment_profile, \
     create_payment_profile, delete_payment_profile
 
@@ -209,7 +209,7 @@ class CustomerProfile(models.Model):
 
     """Authorize.NET customer profile"""
 
-    customer = models.OneToOneField(settings.AUTHNET_CUSTOMER_MODEL,
+    customer = models.OneToOneField(settings.CUSTOMER_MODEL,
                                     related_name='customer_profile')
     profile_id = models.CharField(max_length=50)
 
@@ -232,7 +232,7 @@ class CustomerPaymentProfile(models.Model):
 
     """Authorize.NET customer payment profile"""
 
-    customer = models.ForeignKey(settings.AUTHNET_CUSTOMER_MODEL,
+    customer = models.ForeignKey(settings.CUSTOMER_MODEL,
                                  related_name='payment_profiles')
     customer_profile = models.ForeignKey('CustomerProfile',
                                          related_name='payment_profiles')

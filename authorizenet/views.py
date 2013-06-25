@@ -3,7 +3,7 @@ try:
 except ImportError:
     import md5 as hashlib
 
-from django.conf import settings
+from authorizenet.conf import settings
 from django.shortcuts import render
 from django.views.decorators.csrf import csrf_exempt
 from django.views.generic.edit import CreateView, UpdateView
@@ -18,14 +18,14 @@ from authorizenet.utils import process_payment, combine_form_data
 @csrf_exempt
 def sim_payment(request):
     response = Response.objects.create_from_dict(request.POST)
-    MD5_HASH = getattr(settings, "AUTHNET_MD5_HASH", "")
+    MD5_HASH = settings.MD5_HASH
     hash_is_valid = True
 
     #if MD5-Hash value is provided, use it to validate response
     if MD5_HASH:
         hash_is_valid = False
         hash_value = hashlib.md5(''.join([MD5_HASH,
-                                          settings.AUTHNET_LOGIN_ID,
+                                          settings.LOGIN_ID,
                                           response.trans_id,
                                           response.amount])).hexdigest()
 

@@ -1,5 +1,5 @@
 from django import forms
-from django.conf import settings
+from authorizenet.conf import settings
 from authorizenet.fields import CreditCardField, CreditCardExpiryField, \
         CreditCardCVV2Field, CountryField
 from authorizenet.models import CustomerPaymentProfile
@@ -9,7 +9,7 @@ class SIMPaymentForm(forms.Form):
     x_login = forms.CharField(max_length=20,
                               required=True,
                               widget=forms.HiddenInput,
-                              initial=settings.AUTHNET_LOGIN_ID)
+                              initial=settings.LOGIN_ID)
     x_type = forms.CharField(max_length=20,
                              widget=forms.HiddenInput,
                              initial="AUTH_CAPTURE")
@@ -125,7 +125,7 @@ class HostedCIMProfileForm(forms.Form):
     def __init__(self, token, *args, **kwargs):
         super(HostedCIMProfileForm, self).__init__(*args, **kwargs)
         self.fields['token'].initial = token
-        if settings.AUTHNET_DEBUG:
+        if settings.DEBUG:
             self.action = "https://test.authorize.net/profile/manage"
         else:
             self.action = "https://secure.authorize.net/profile/manage"

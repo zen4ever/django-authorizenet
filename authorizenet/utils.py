@@ -1,21 +1,21 @@
 import hmac
 
-from django.conf import settings
 from django.core.exceptions import ImproperlyConfigured
 
+from authorizenet.conf import settings
 from authorizenet.helpers import AIMPaymentHelper
 from authorizenet.models import Response
 from authorizenet.signals import payment_was_successful, payment_was_flagged
 
 
 def get_fingerprint(x_fp_sequence, x_fp_timestamp, x_amount):
-    msg = '^'.join([settings.AUTHNET_LOGIN_ID,
+    msg = '^'.join([settings.LOGIN_ID,
            x_fp_sequence,
            x_fp_timestamp,
            x_amount
            ]) + '^'
 
-    return hmac.new(settings.AUTHNET_TRANSACTION_KEY, msg).hexdigest()
+    return hmac.new(settings.TRANSACTION_KEY, msg).hexdigest()
 
 
 def extract_form_data(form_data):
@@ -23,10 +23,10 @@ def extract_form_data(form_data):
                     form_data.items()))
 
 AIM_DEFAULT_DICT = {
-    'x_login': settings.AUTHNET_LOGIN_ID,
-    'x_tran_key': settings.AUTHNET_TRANSACTION_KEY,
+    'x_login': settings.LOGIN_ID,
+    'x_tran_key': settings.TRANSACTION_KEY,
     'x_delim_data': "TRUE",
-    'x_delim_char': getattr(settings, 'AUTHNET_DELIM_CHAR', "|"),
+    'x_delim_char': settings.DELIM_CHAR,
     'x_relay_response': "FALSE",
     'x_type': "AUTH_CAPTURE",
     'x_method': "CC"
@@ -48,10 +48,10 @@ def process_payment(form_data, extra_data):
     data = extract_form_data(form_data)
     data.update(extract_form_data(extra_data))
     data['x_exp_date'] = data['x_exp_date'].strftime('%m%y')
-    if getattr(settings, 'AUTHNET_FORCE_TEST_REQUEST', False):
+    if settings.FORCE_TEST_REQUEST:
         data['x_test_request'] = 'TRUE'
-    if hasattr(settings, 'AUTHNET_EMAIL_CUSTOMER'):
-        data['x_email_customer'] = settings.AUTHNET_EMAIL_CUSTOMER
+    if settings.EMAIL_CUSTOMER is not None:
+        data['x_email_customer'] = settings.EMAIL_CUSTOMER
     return create_response(data)
 
 
@@ -74,6 +74,6 @@ def capture_transaction(response, extra_data=None):
     if not data.get('x_amount', None):
         data['x_amount'] = response.amount
     data['x_type'] = 'PRIOR_AUTH_CAPTURE'
-    if getattr(settings, 'AUTHNET_FORCE_TEST_REQUEST', False):
+    if settings.FORCE_TEST_REQUEST:
         data['x_test_request'] = 'TRUE'
     return create_response(data)
