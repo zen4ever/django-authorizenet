@@ -113,6 +113,18 @@ def add_profile(customer_id, payment_form_data, billing_form_data,
             'shipping_profile_ids': shipping_profile_ids}
 
 
+def delete_profile(profile_id):
+    """
+    Delete a customer profile and return the CIMResponse.
+
+    Arguments:
+    profile_id -- unique gateway-assigned profile identifier
+    """
+    helper = DeleteProfileRequest(profile_id)
+    response = helper.get_response()
+    return response
+
+
 def update_payment_profile(profile_id,
                            payment_profile_id,
                            payment_form_data,
