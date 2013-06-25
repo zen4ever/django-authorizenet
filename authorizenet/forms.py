@@ -105,12 +105,14 @@ class CustomerPaymentForm(forms.ModelForm):
         self.customer = kwargs.pop('customer', None)
         return super(CustomerPaymentForm, self).__init__(*args, **kwargs)
 
-    def save(self):
+    def save(self, commit=True):
         instance = super(CustomerPaymentForm, self).save(commit=False)
-        instance.customer = self.customer
+        if self.customer:
+            instance.customer = self.customer
         instance.expiration_date = self.cleaned_data['expiration_date']
         instance.card_code = self.cleaned_data.get('card_code')
-        instance.save()
+        if commit:
+            instance.save()
         return instance
 
     class Meta:
@@ -118,6 +120,11 @@ class CustomerPaymentForm(forms.ModelForm):
         fields = ('first_name', 'last_name', 'company', 'address', 'city',
                   'state', 'country', 'zip', 'card_number',
                   'expiration_date', 'card_code')
+
+
+class CustomerPaymentAdminForm(CustomerPaymentForm):
+    class Meta(CustomerPaymentForm.Meta):
+        fields = ('customer',) + CustomerPaymentForm.Meta.fields
 
 
 class HostedCIMProfileForm(forms.Form):

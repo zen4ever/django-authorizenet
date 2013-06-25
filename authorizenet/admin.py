@@ -1,7 +1,9 @@
 from django.contrib import admin
 from django.core.urlresolvers import reverse
 from django.utils.safestring import mark_safe
-from authorizenet.models import Response, CIMResponse
+from authorizenet.models import (Response, CIMResponse, CustomerProfile,
+                                 CustomerPaymentProfile)
+from authorizenet.forms import CustomerPaymentForm, CustomerPaymentAdminForm
 
 
 class ResponseAdmin(admin.ModelAdmin):
@@ -78,3 +80,32 @@ class CIMResponseAdmin(admin.ModelAdmin):
     response_link.short_description = 'transaction response'
 
 admin.site.register(CIMResponse, CIMResponseAdmin)
+
+
+class CustomerPaymentProfileInline(admin.StackedInline):
+    model = CustomerPaymentProfile
+    extra = 0
+    max_num = 0
+    form = CustomerPaymentForm
+
+
+class CustomerProfileAdmin(admin.ModelAdmin):
+    list_display = ['profile_id', 'customer']
+    readonly_fields = ['profile_id', 'customer']
+    inlines = [CustomerPaymentProfileInline]
+
+    def get_readonly_fields(self, request, obj=None):
+        return self.readonly_fields if obj is not None else []
+
+admin.site.register(CustomerProfile, CustomerProfileAdmin)
+
+
+class CustomerPaymentProfileAdmin(admin.ModelAdmin):
+    list_display = ['payment_profile_id', 'customer_profile', 'customer']
+    readonly_fields = ['payment_profile_id', 'customer', 'customer_profile']
+    form = CustomerPaymentAdminForm
+
+    def get_readonly_fields(self, request, obj=None):
+        return self.readonly_fields if obj is not None else []
+
+admin.site.register(CustomerPaymentProfile, CustomerPaymentProfileAdmin)

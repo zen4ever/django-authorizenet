@@ -247,6 +247,9 @@ class CustomerProfile(models.Model):
 
     objects = CustomerProfileManager()
 
+    def __unicode__(self):
+        return self.profile_id
+
 
 class CustomerPaymentProfile(models.Model):
 
@@ -354,6 +357,6 @@ class CustomerPaymentProfile(models.Model):
         return self
 
     def __unicode__(self):
-        return self.card_number
+        return self.payment_profile_id
 
     objects = CustomerPaymentProfileManager()
