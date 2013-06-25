@@ -13,9 +13,9 @@ class Settings(object):
     """
 
     prefix = 'AUTHNET_'
-    settings = {'DEBUG', 'LOGIN_ID', 'TRANSACTION_KEY', 'CUSTOMER_MODEL',
-                'DELIM_CHAR', 'FORCE_TEST_REQUEST', 'EMAIL_CUSTOMER',
-                'MD5_HASH'}
+    settings = set(('DEBUG', 'LOGIN_ID', 'TRANSACTION_KEY', 'CUSTOMER_MODEL',
+                   'DELIM_CHAR', 'FORCE_TEST_REQUEST', 'EMAIL_CUSTOMER',
+                   'MD5_HASH'))
 
     class Default:
         CUSTOMER_MODEL = getattr(
