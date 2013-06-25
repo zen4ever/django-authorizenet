@@ -215,7 +215,8 @@ class CustomerProfile(models.Model):
 
     def save(self, *args, **kwargs):
         data = kwargs.pop('data', {})
-        if not self.id and kwargs.pop('sync', True):
+        sync = kwargs.pop('sync', True)
+        if not self.id and sync:
             self.push_to_server(data)
         super(CustomerProfile, self).save(*args, **kwargs)
 
