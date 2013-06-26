@@ -5,7 +5,7 @@ from .conf import settings
 from .cim import add_profile, get_profile, update_payment_profile, \
     create_payment_profile, delete_profile, delete_payment_profile
 
-from .managers import CustomerProfileManager, CustomerPaymentProfileManager
+from .managers import CustomerProfileManager
 from .exceptions import BillingError
 
 
@@ -355,5 +355,3 @@ class CustomerPaymentProfile(models.Model):
 
     def __unicode__(self):
         return self.payment_profile_id
-
-    objects = CustomerPaymentProfileManager()

@@ -32,14 +32,3 @@ class CustomerProfileManager(models.Manager):
                 )
 
         return obj
-
-
-class CustomerPaymentProfileManager(models.Manager):
-
-    def create(self, **kwargs):
-        """Create new Authorize.NET customer payment profile"""
-        sync = kwargs.pop('sync', True)
-        obj = self.model(**kwargs)
-        self._for_write = True
-        obj.save(force_insert=True, using=self.db, sync=sync)
-        return obj
