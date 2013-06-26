@@ -204,6 +204,10 @@ class CIMResponse(models.Model):
     def success(self):
         return self.result == 'Ok'
 
+    def raise_if_error(self):
+        if not self.success:
+            raise BillingError(self.result_text)
+
 
 class CustomerProfile(models.Model):
 
@@ -223,22 +227,19 @@ class CustomerProfile(models.Model):
     def delete(self):
         """Delete the customer profile remotely and locally"""
         response = delete_profile(self.profile_id)
-        if not response.success:
-            raise BillingError("Error deleting customer profile")
+        response.raise_if_error()
         super(CustomerProfile, self).delete()
 
     def push_to_server(self, data):
         output = add_profile(self.customer.pk, data, data)
-        if not output['response'].success:
-            raise BillingError("Error creating customer profile")
+        output['response'].raise_if_error()
         self.profile_id = output['profile_id']
         self.payment_profile_ids = output['payment_profile_ids']
 
     def sync(self):
         """Overwrite local customer profile data with remote data"""
         response, payment_profiles = get_profile(self.profile_id)
-        if not response.success:
-            raise BillingError("Error syncing remote customer profile")
+        response.raise_if_error()
         for payment_profile in payment_profiles:
             instance, created = CustomerPaymentProfile.objects.get_or_create(
                 customer_profile=self,
@@ -323,8 +324,7 @@ class CustomerPaymentProfile(models.Model):
                 sync=False,
             )
             self.payment_profile_id = output['payment_profile_ids'][0]
-        if not response.success:
-            raise BillingError()
+        response.raise_if_error()
 
     @property
     def raw_data(self):
@@ -346,8 +346,7 @@ class CustomerPaymentProfile(models.Model):
         """Delete the customer payment profile remotely and locally"""
         response = delete_payment_profile(self.customer_profile.profile_id,
                                           self.payment_profile_id)
-        if not response.success:
-            raise BillingError("Error deleting customer payment profile")
+        response.raise_if_error()
         return super(CustomerPaymentProfile, self).delete()
 
     def update(self, **data):
