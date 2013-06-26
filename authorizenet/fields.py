@@ -97,6 +97,7 @@ class CreditCardExpiryField(forms.MultiValueField):
 
 class CreditCardCVV2Field(forms.CharField):
     def __init__(self, *args, **kwargs):
+        kwargs.setdefault('min_length', 3)
         kwargs.setdefault('max_length', 4)
         super(CreditCardCVV2Field, self).__init__(*args, **kwargs)
 
