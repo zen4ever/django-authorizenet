@@ -109,7 +109,6 @@ class CustomerPaymentForm(forms.ModelForm):
         instance = super(CustomerPaymentForm, self).save(commit=False)
         if self.customer:
             instance.customer = self.customer
-        instance.expiration_date = self.cleaned_data['expiration_date']
         instance.card_code = self.cleaned_data.get('card_code')
         if commit:
             instance.save()

@@ -1,3 +1,4 @@
+from datetime import date
 from django.test import LiveServerTestCase
 from xml.dom.minidom import parseString
 from httmock import HTTMock
@@ -131,7 +132,7 @@ class PaymentProfileUpdateTests(LiveServerTestCase):
             'customer': self.user.id,
             'payment_profile_id': '7777',
             'card_number': 'XXXX1747',
-            'expiration_date': None,
+            'expiration_date': date(2020, 5, 31),
             'card_code': None,
             'first_name': 'Danielle',
             'last_name': 'Thompson',

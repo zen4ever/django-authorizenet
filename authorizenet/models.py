@@ -273,18 +273,16 @@ class CustomerPaymentProfile(models.Model):
     zip = models.CharField(max_length=20, blank=True, verbose_name="ZIP")
     country = models.CharField(max_length=60, blank=True)
     card_number = models.CharField(max_length=16, blank=True)
-    expiration_date = None
+    expiration_date = models.DateField(blank=True, null=True)
     card_code = None
 
     def __init__(self, *args, **kwargs):
         self.card_code = kwargs.pop('card_code', None)
-        self.expiration_date = kwargs.pop('expiration_date', None)
         return super(CustomerPaymentProfile, self).__init__(*args, **kwargs)
 
     def save(self, *args, **kwargs):
         if kwargs.pop('sync', True):
             self.push_to_server()
-        self.expiration_date = None
         self.card_code = None
         self.card_number = "XXXX%s" % self.card_number[-4:]
         super(CustomerPaymentProfile, self).save(*args, **kwargs)
@@ -330,8 +328,7 @@ class CustomerPaymentProfile(models.Model):
     def raw_data(self):
         """Return data suitable for use in payment and billing forms"""
         data = model_to_dict(self)
-        data.update(dict((k, getattr(self, k))
-                         for k in ('expiration_date', 'card_code')))
+        data['card_code'] = getattr(self, 'card_code')
         return data
 
     def sync(self, data):
