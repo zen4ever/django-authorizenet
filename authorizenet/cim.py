@@ -47,7 +47,7 @@ def extract_form_data(data):
 
 def extract_payment_form_data(data):
     payment_data = extract_form_data(data)
-    if 'expirationDate' in payment_data:
+    if payment_data.get('expirationDate') is not None:
         payment_data['expirationDate'] = \
                 payment_data['expirationDate'].strftime('%Y-%m')
     return payment_data
