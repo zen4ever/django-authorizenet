@@ -238,9 +238,9 @@ class CustomerProfile(models.Model):
 
     def sync(self):
         """Overwrite local customer profile data with remote data"""
-        response, payment_profiles = get_profile(self.profile_id)
-        response.raise_if_error()
-        for payment_profile in payment_profiles:
+        output = get_profile(self.profile_id)
+        output['response'].raise_if_error()
+        for payment_profile in output['payment_profiles']:
             instance, created = CustomerPaymentProfile.objects.get_or_create(
                 customer_profile=self,
                 payment_profile_id=payment_profile['payment_profile_id']
@@ -340,7 +340,7 @@ class CustomerPaymentProfile(models.Model):
             setattr(self, k, v)
         self.card_number = data.get('credit_card', {}).get('card_number',
                                                            self.card_number)
-        self.save()
+        self.save(sync=False)
 
     def delete(self):
         """Delete the customer payment profile remotely and locally"""
