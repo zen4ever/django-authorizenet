@@ -95,7 +95,7 @@ class CustomerProfileAdmin(admin.ModelAdmin):
     inlines = [CustomerPaymentProfileInline]
 
     def get_readonly_fields(self, request, obj=None):
-        return self.readonly_fields if obj is not None else []
+        return self.readonly_fields if obj is not None else ['profile_id']
 
 admin.site.register(CustomerProfile, CustomerProfileAdmin)
 
