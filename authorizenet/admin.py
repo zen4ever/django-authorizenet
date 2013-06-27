@@ -4,6 +4,7 @@ from django.utils.safestring import mark_safe
 from authorizenet.models import (Response, CIMResponse, CustomerProfile,
                                  CustomerPaymentProfile)
 from authorizenet.forms import CustomerPaymentForm, CustomerPaymentAdminForm
+from relatives.utils import object_edit_link
 
 
 class ResponseAdmin(admin.ModelAdmin):
@@ -82,11 +83,15 @@ class CIMResponseAdmin(admin.ModelAdmin):
 admin.site.register(CIMResponse, CIMResponseAdmin)
 
 
-class CustomerPaymentProfileInline(admin.StackedInline):
+class CustomerPaymentProfileInline(admin.TabularInline):
     model = CustomerPaymentProfile
+    form = CustomerPaymentForm
+    fields = [object_edit_link("Edit"), 'first_name', 'last_name',
+              'card_number', 'expiration_date']
+    readonly_fields = fields
     extra = 0
     max_num = 0
-    form = CustomerPaymentForm
+    can_delete = False
 
 
 class CustomerProfileAdmin(admin.ModelAdmin):
