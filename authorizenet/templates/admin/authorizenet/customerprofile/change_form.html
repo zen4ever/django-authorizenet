@@ -1,0 +1,4 @@
+{% extends "admin/authorizenet/change_form.html" %}
+
+{% block submit_buttons_bottom %}{% if not change %}{{ block.super }}{% endif %}{% endblock %}
+{% block submit_buttons_top %}{% if not change %}{{ block.super }}{% endif %}{% endblock %}
