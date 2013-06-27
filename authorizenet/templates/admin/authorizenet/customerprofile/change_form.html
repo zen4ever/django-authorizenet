@@ -1,4 +1,13 @@
 {% extends "admin/authorizenet/change_form.html" %}
+{% load url from future %}
 
 {% block submit_buttons_bottom %}{% if not change %}{{ block.super }}{% endif %}{% endblock %}
 {% block submit_buttons_top %}{% if not change %}{{ block.super }}{% endif %}{% endblock %}
+
+{% block inline_field_sets %}
+{{ block.super }}
+{% if change %}
+<a href="{% url "admin:authorizenet_customerpaymentprofile_add" %}?customer={{ adminform.form.instance.customer_id }}">
+  Add payment profile</a><br>
+{% endif %}
+{% endblock %}
