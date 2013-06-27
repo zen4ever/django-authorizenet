@@ -3,11 +3,13 @@ try:
 except ImportError:
     import md5 as hashlib
 
-from django.conf import settings
+from authorizenet.conf import settings
 from django.shortcuts import render
 from django.views.decorators.csrf import csrf_exempt
+from django.views.generic.edit import CreateView, UpdateView
 
-from authorizenet.forms import AIMPaymentForm, BillingAddressForm
+from authorizenet.forms import AIMPaymentForm, BillingAddressForm, CustomerPaymentForm
+from authorizenet.models import CustomerProfile, CustomerPaymentProfile
 from authorizenet.models import Response
 from authorizenet.signals import payment_was_successful, payment_was_flagged
 from authorizenet.utils import process_payment, combine_form_data
@@ -16,14 +18,14 @@ from authorizenet.utils import process_payment, combine_form_data
 @csrf_exempt
 def sim_payment(request):
     response = Response.objects.create_from_dict(request.POST)
-    MD5_HASH = getattr(settings, "AUTHNET_MD5_HASH", "")
+    MD5_HASH = settings.MD5_HASH
     hash_is_valid = True
 
     #if MD5-Hash value is provided, use it to validate response
     if MD5_HASH:
         hash_is_valid = False
         hash_value = hashlib.md5(''.join([MD5_HASH,
-                                          settings.AUTHNET_LOGIN_ID,
+                                          settings.LOGIN_ID,
                                           response.trans_id,
                                           response.amount])).hexdigest()
 
@@ -121,3 +123,23 @@ class AIMPayment(object):
             self.payment_template,
             self.context
         )
+
+
+class PaymentProfileCreateView(CreateView):
+    template_name = 'authorizenet/create_payment_profile.html'
+    form_class = CustomerPaymentForm
+
+    def get_form_kwargs(self):
+        kwargs = super(PaymentProfileCreateView, self).get_form_kwargs()
+        kwargs['customer'] = self.request.user
+        return kwargs
+
+
+class PaymentProfileUpdateView(UpdateView):
+    template_name = 'authorizenet/update_payment_profile.html'
+    form_class = CustomerPaymentForm
+
+    def get_form_kwargs(self):
+        kwargs = super(PaymentProfileUpdateView, self).get_form_kwargs()
+        kwargs['customer'] = self.request.user
+        return kwargs

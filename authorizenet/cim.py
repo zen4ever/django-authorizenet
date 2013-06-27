@@ -2,11 +2,10 @@ import re
 import xml.dom.minidom
 
 from django.utils.datastructures import SortedDict
-from django.conf import settings
+from authorizenet.conf import settings
 import requests
 
 from authorizenet import AUTHNET_CIM_URL, AUTHNET_TEST_CIM_URL
-from authorizenet.models import CIMResponse, Response
 from authorizenet.signals import customer_was_created, customer_was_flagged, \
         payment_was_successful, payment_was_flagged
 
@@ -48,8 +47,9 @@ def extract_form_data(data):
 
 def extract_payment_form_data(data):
     payment_data = extract_form_data(data)
-    payment_data['expirationDate'] = \
-            payment_data['expirationDate'].strftime('%Y-%m')
+    if payment_data.get('expirationDate') is not None:
+        payment_data['expirationDate'] = \
+                payment_data['expirationDate'].strftime('%Y-%m')
     return payment_data
 
 
@@ -111,6 +111,18 @@ def add_profile(customer_id, payment_form_data, billing_form_data,
             'profile_id': profile_id,
             'payment_profile_ids': payment_profile_ids,
             'shipping_profile_ids': shipping_profile_ids}
+
+
+def delete_profile(profile_id):
+    """
+    Delete a customer profile and return the CIMResponse.
+
+    Arguments:
+    profile_id -- unique gateway-assigned profile identifier
+    """
+    helper = DeleteProfileRequest(profile_id)
+    response = helper.get_response()
+    return response
 
 
 def update_payment_profile(profile_id,
@@ -265,7 +277,7 @@ class BaseRequest(object):
 
     def __init__(self, action):
         self.create_base_document(action)
-        if settings.AUTHNET_DEBUG:
+        if settings.DEBUG:
             self.endpoint = AUTHNET_TEST_CIM_URL
         else:
             self.endpoint = AUTHNET_CIM_URL
@@ -285,9 +297,9 @@ class BaseRequest(object):
 
         self.document = doc
         authentication = doc.createElement("merchantAuthentication")
-        name = self.get_text_node("name", settings.AUTHNET_LOGIN_ID)
+        name = self.get_text_node("name", settings.LOGIN_ID)
         key = self.get_text_node("transactionKey",
-                                 settings.AUTHNET_TRANSACTION_KEY)
+                                 settings.TRANSACTION_KEY)
         authentication.appendChild(name)
         authentication.appendChild(key)
         root.appendChild(authentication)
@@ -303,7 +315,8 @@ class BaseRequest(object):
             self.endpoint,
             data=self.document.toxml().encode('utf-8'),
             headers={'Content-Type': 'text/xml'})
-        response_xml = xml.dom.minidom.parseString(response.text)
+        text = response.text.encode('utf-8')
+        response_xml = xml.dom.minidom.parseString(text)
         self.process_response(response_xml)
         return self.create_response_object()
 
@@ -317,6 +330,7 @@ class BaseRequest(object):
         return node
 
     def create_response_object(self):
+        from authorizenet.models import CIMResponse
         return CIMResponse.objects.create(result=self.result,
                                           result_code=self.resultCode,
                                           result_text=self.resultText)
@@ -694,7 +708,7 @@ class CreateTransactionRequest(BaseRequest):
         if delimiter:
             self.delimiter = delimiter
         else:
-            self.delimiter = getattr(settings, 'AUTHNET_DELIM_CHAR', "|")
+            self.delimiter = settings.DELIM_CHAR
         self.add_transaction_node()
         self.add_extra_options()
         if order_info:
@@ -755,6 +769,7 @@ class CreateTransactionRequest(BaseRequest):
         self.root.appendChild(extra_options_node)
 
     def create_response_object(self):
+        from authorizenet.models import CIMResponse, Response
         try:
             response = Response.objects.create_from_list(
                     self.transaction_result)

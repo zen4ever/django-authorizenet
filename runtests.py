@@ -11,9 +11,14 @@ if not settings.configured:
         AUTHNET_LOGIN_ID="loginid",
         AUTHNET_TRANSACTION_KEY="key",
         INSTALLED_APPS=(
-            'authorizenet.tests',
+            'django.contrib.contenttypes',
+            'django.contrib.auth',
+            'django.contrib.sessions',
+            'tests',
             'authorizenet',
         ),
+        ROOT_URLCONF='tests.urls',
+        STATIC_URL='/static/',
         DATABASES={'default': {'ENGINE': 'django.db.backends.sqlite3'}},
     )
 
