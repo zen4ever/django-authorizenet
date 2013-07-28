@@ -1,15 +1,15 @@
 import re
 
-from django.conf import settings
 import requests
 
+from authorizenet.conf import settings
 from authorizenet import AUTHNET_POST_URL, AUTHNET_TEST_POST_URL
 
 
 class AIMPaymentHelper(object):
     def __init__(self, defaults):
         self.defaults = defaults
-        if settings.AUTHNET_DEBUG:
+        if settings.DEBUG:
             self.endpoint = AUTHNET_TEST_POST_URL
         else:
             self.endpoint = AUTHNET_POST_URL

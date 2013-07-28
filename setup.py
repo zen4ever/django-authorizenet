@@ -25,4 +25,4 @@ setup(name='django-authorizenet',
       ).read().strip(),
       test_suite='runtests.runtests',
       tests_require=['httmock'],
-      install_requires=['requests', 'django>=1.4'])
+      install_requires=['requests', 'django>=1.4', 'django-relatives>=0.2.0'])

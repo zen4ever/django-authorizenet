@@ -1,14 +1,15 @@
 from django import forms
-from django.conf import settings
+from authorizenet.conf import settings
 from authorizenet.fields import CreditCardField, CreditCardExpiryField, \
         CreditCardCVV2Field, CountryField
+from authorizenet.models import CustomerPaymentProfile
 
 
 class SIMPaymentForm(forms.Form):
     x_login = forms.CharField(max_length=20,
                               required=True,
                               widget=forms.HiddenInput,
-                              initial=settings.AUTHNET_LOGIN_ID)
+                              initial=settings.LOGIN_ID)
     x_type = forms.CharField(max_length=20,
                              widget=forms.HiddenInput,
                              initial="AUTH_CAPTURE")
@@ -91,12 +92,46 @@ class CIMPaymentForm(forms.Form):
     card_code = CreditCardCVV2Field(label="Card Security Code")
 
 
+class CustomerPaymentForm(forms.ModelForm):
+
+    """Base customer payment form without shipping address"""
+
+    country = CountryField(label="Country", initial="US")
+    card_number = CreditCardField(label="Credit Card Number")
+    expiration_date = CreditCardExpiryField(label="Expiration Date")
+    card_code = CreditCardCVV2Field(label="Card Security Code")
+
+    def __init__(self, *args, **kwargs):
+        self.customer = kwargs.pop('customer', None)
+        return super(CustomerPaymentForm, self).__init__(*args, **kwargs)
+
+    def save(self, commit=True):
+        instance = super(CustomerPaymentForm, self).save(commit=False)
+        if self.customer:
+            instance.customer = self.customer
+        instance.card_code = self.cleaned_data.get('card_code')
+        if commit:
+            instance.save()
+        return instance
+
+    class Meta:
+        model = CustomerPaymentProfile
+        fields = ('first_name', 'last_name', 'company', 'address', 'city',
+                  'state', 'country', 'zip', 'card_number',
+                  'expiration_date', 'card_code')
+
+
+class CustomerPaymentAdminForm(CustomerPaymentForm):
+    class Meta(CustomerPaymentForm.Meta):
+        fields = ('customer',) + CustomerPaymentForm.Meta.fields
+
+
 class HostedCIMProfileForm(forms.Form):
     token = forms.CharField(widget=forms.HiddenInput)
     def __init__(self, token, *args, **kwargs):
         super(HostedCIMProfileForm, self).__init__(*args, **kwargs)
         self.fields['token'].initial = token
-        if settings.AUTHNET_DEBUG:
+        if settings.DEBUG:
             self.action = "https://test.authorize.net/profile/manage"
         else:
             self.action = "https://secure.authorize.net/profile/manage"
