@@ -126,6 +126,12 @@ class AIMPayment(object):
 
 
 class PaymentProfileCreateView(CreateView):
+    """
+    View for creating a CustomerPaymentProfile instance
+
+    CustomerProfile instance will be created automatically if needed.
+    """
+
     template_name = 'authorizenet/create_payment_profile.html'
     form_class = CustomerPaymentForm
 
@@ -136,6 +142,10 @@ class PaymentProfileCreateView(CreateView):
 
 
 class PaymentProfileUpdateView(UpdateView):
+    """
+    View for modifying an existing CustomerPaymentProfile instance
+    """
+
     template_name = 'authorizenet/update_payment_profile.html'
     form_class = CustomerPaymentForm
 

@@ -224,6 +224,7 @@ class CustomerProfile(models.Model):
     profile_id = models.CharField(max_length=50)
 
     def save(self, *args, **kwargs):
+        """If creating new instance, create profile on Authorize.NET also"""
         data = kwargs.pop('data', {})
         sync = kwargs.pop('sync', True)
         if not self.id and sync:
@@ -237,6 +238,7 @@ class CustomerProfile(models.Model):
         super(CustomerProfile, self).delete()
 
     def push_to_server(self, data):
+        """Create customer profile for given ``customer`` on Authorize.NET"""
         output = add_profile(self.customer.pk, data, data)
         output['response'].raise_if_error()
         self.profile_id = output['profile_id']
@@ -287,6 +289,7 @@ class CustomerPaymentProfile(models.Model):
         return super(CustomerPaymentProfile, self).__init__(*args, **kwargs)
 
     def save(self, *args, **kwargs):
+        """Sync payment profile on Authorize.NET if sync kwarg is not False"""
         if kwargs.pop('sync', True):
             self.push_to_server()
         self.card_code = None
@@ -294,6 +297,14 @@ class CustomerPaymentProfile(models.Model):
         super(CustomerPaymentProfile, self).save(*args, **kwargs)
 
     def push_to_server(self):
+        """
+        Use appropriate CIM API call to save payment profile to Authorize.NET
+
+        1. If customer has no profile yet, create one with this payment profile
+        2. If payment profile is not on Authorize.NET yet, create it there
+        3. If payment profile exists on Authorize.NET update it there
+
+        """
         if not self.customer_profile_id:
             try:
                 self.customer_profile = CustomerProfile.objects.get(
