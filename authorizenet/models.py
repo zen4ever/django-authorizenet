@@ -1,4 +1,13 @@
 from django.db import models
+from django.forms.models import model_to_dict
+
+from .conf import settings
+from .cim import add_profile, get_profile, update_payment_profile, \
+    create_payment_profile, delete_profile, delete_payment_profile
+
+from .managers import CustomerProfileManager
+from .exceptions import BillingError
+
 
 RESPONSE_CHOICES = (
     ('1', 'Approved'),
@@ -194,3 +203,155 @@ class CIMResponse(models.Model):
     @property
     def success(self):
         return self.result == 'Ok'
+
+    def raise_if_error(self):
+        if not self.success:
+            raise BillingError(self.result_text)
+
+
+class CustomerProfile(models.Model):
+
+    """Authorize.NET customer profile"""
+
+    customer = models.OneToOneField(settings.CUSTOMER_MODEL,
+                                    related_name='customer_profile')
+    profile_id = models.CharField(max_length=50)
+
+    def save(self, *args, **kwargs):
+        data = kwargs.pop('data', {})
+        sync = kwargs.pop('sync', True)
+        if not self.id and sync:
+            self.push_to_server(data)
+        super(CustomerProfile, self).save(*args, **kwargs)
+
+    def delete(self):
+        """Delete the customer profile remotely and locally"""
+        response = delete_profile(self.profile_id)
+        response.raise_if_error()
+        super(CustomerProfile, self).delete()
+
+    def push_to_server(self, data):
+        output = add_profile(self.customer.pk, data, data)
+        output['response'].raise_if_error()
+        self.profile_id = output['profile_id']
+        self.payment_profile_ids = output['payment_profile_ids']
+
+    def sync(self):
+        """Overwrite local customer profile data with remote data"""
+        output = get_profile(self.profile_id)
+        output['response'].raise_if_error()
+        for payment_profile in output['payment_profiles']:
+            instance, created = CustomerPaymentProfile.objects.get_or_create(
+                customer_profile=self,
+                payment_profile_id=payment_profile['payment_profile_id']
+            )
+            instance.sync(payment_profile)
+
+    objects = CustomerProfileManager()
+
+    def __unicode__(self):
+        return self.profile_id
+
+
+class CustomerPaymentProfile(models.Model):
+
+    """Authorize.NET customer payment profile"""
+
+    customer = models.ForeignKey(settings.CUSTOMER_MODEL,
+                                 related_name='payment_profiles')
+    customer_profile = models.ForeignKey('CustomerProfile',
+                                         related_name='payment_profiles')
+    payment_profile_id = models.CharField(max_length=50)
+    first_name = models.CharField(max_length=50, blank=True)
+    last_name = models.CharField(max_length=50, blank=True)
+    company = models.CharField(max_length=50, blank=True)
+    phone_number = models.CharField(max_length=25, blank=True)
+    fax_number = models.CharField(max_length=25, blank=True)
+    address = models.CharField(max_length=60, blank=True)
+    city = models.CharField(max_length=40, blank=True)
+    state = models.CharField(max_length=40, blank=True)
+    zip = models.CharField(max_length=20, blank=True, verbose_name="ZIP")
+    country = models.CharField(max_length=60, blank=True)
+    card_number = models.CharField(max_length=16, blank=True)
+    expiration_date = models.DateField(blank=True, null=True)
+    card_code = None
+
+    def __init__(self, *args, **kwargs):
+        self.card_code = kwargs.pop('card_code', None)
+        return super(CustomerPaymentProfile, self).__init__(*args, **kwargs)
+
+    def save(self, *args, **kwargs):
+        if kwargs.pop('sync', True):
+            self.push_to_server()
+        self.card_code = None
+        self.card_number = "XXXX%s" % self.card_number[-4:]
+        super(CustomerPaymentProfile, self).save(*args, **kwargs)
+
+    def push_to_server(self):
+        if not self.customer_profile_id:
+            try:
+                self.customer_profile = CustomerProfile.objects.get(
+                    customer=self.customer)
+            except CustomerProfile.DoesNotExist:
+                pass
+        if self.payment_profile_id:
+            response = update_payment_profile(
+                self.customer_profile.profile_id,
+                self.payment_profile_id,
+                self.raw_data,
+                self.raw_data,
+            )
+        elif self.customer_profile_id:
+            output = create_payment_profile(
+                self.customer_profile.profile_id,
+                self.raw_data,
+                self.raw_data,
+            )
+            response = output['response']
+            self.payment_profile_id = output['payment_profile_id']
+        else:
+            output = add_profile(
+                self.customer.id,
+                self.raw_data,
+                self.raw_data,
+            )
+            response = output['response']
+            self.customer_profile = CustomerProfile.objects.create(
+                customer=self.customer,
+                profile_id=output['profile_id'],
+                sync=False,
+            )
+            self.payment_profile_id = output['payment_profile_ids'][0]
+        response.raise_if_error()
+
+    @property
+    def raw_data(self):
+        """Return data suitable for use in payment and billing forms"""
+        data = model_to_dict(self)
+        data['card_code'] = getattr(self, 'card_code')
+        return data
+
+    def sync(self, data):
+        """Overwrite local customer payment profile data with remote data"""
+        for k, v in data.get('billing', {}).items():
+            setattr(self, k, v)
+        self.card_number = data.get('credit_card', {}).get('card_number',
+                                                           self.card_number)
+        self.save(sync=False)
+
+    def delete(self):
+        """Delete the customer payment profile remotely and locally"""
+        response = delete_payment_profile(self.customer_profile.profile_id,
+                                          self.payment_profile_id)
+        response.raise_if_error()
+        return super(CustomerPaymentProfile, self).delete()
+
+    def update(self, **data):
+        """Update the customer payment profile remotely and locally"""
+        for key, value in data.items():
+            setattr(self, key, value)
+        self.save()
+        return self
+
+    def __unicode__(self):
+        return self.payment_profile_id
