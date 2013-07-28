@@ -127,6 +127,9 @@ class ResponseManager(models.Manager):
 
 
 class Response(models.Model):
+
+    """Transaction Response (See Section 4 of AIM Developer Guide)"""
+
     response_code = models.CharField(max_length=2, choices=RESPONSE_CHOICES)
     response_subcode = models.CharField(max_length=10)
     response_reason_code = models.CharField(max_length=15)
@@ -193,6 +196,9 @@ class Response(models.Model):
 
 
 class CIMResponse(models.Model):
+
+    """Response for CIM API call (See Section 3 in CIM XML Guide)"""
+
     result = models.CharField(max_length=8)
     result_code = models.CharField(max_length=8,
                                    choices=CIM_RESPONSE_CODE_CHOICES)
@@ -218,6 +224,7 @@ class CustomerProfile(models.Model):
     profile_id = models.CharField(max_length=50)
 
     def save(self, *args, **kwargs):
+        """If creating new instance, create profile on Authorize.NET also"""
         data = kwargs.pop('data', {})
         sync = kwargs.pop('sync', True)
         if not self.id and sync:
@@ -231,6 +238,7 @@ class CustomerProfile(models.Model):
         super(CustomerProfile, self).delete()
 
     def push_to_server(self, data):
+        """Create customer profile for given ``customer`` on Authorize.NET"""
         output = add_profile(self.customer.pk, data, data)
         output['response'].raise_if_error()
         self.profile_id = output['profile_id']
@@ -281,6 +289,7 @@ class CustomerPaymentProfile(models.Model):
         return super(CustomerPaymentProfile, self).__init__(*args, **kwargs)
 
     def save(self, *args, **kwargs):
+        """Sync payment profile on Authorize.NET if sync kwarg is not False"""
         if kwargs.pop('sync', True):
             self.push_to_server()
         self.card_code = None
@@ -288,6 +297,14 @@ class CustomerPaymentProfile(models.Model):
         super(CustomerPaymentProfile, self).save(*args, **kwargs)
 
     def push_to_server(self):
+        """
+        Use appropriate CIM API call to save payment profile to Authorize.NET
+
+        1. If customer has no profile yet, create one with this payment profile
+        2. If payment profile is not on Authorize.NET yet, create it there
+        3. If payment profile exists on Authorize.NET update it there
+
+        """
         if not self.customer_profile_id:
             try:
                 self.customer_profile = CustomerProfile.objects.get(
@@ -301,6 +318,7 @@ class CustomerPaymentProfile(models.Model):
                 self.raw_data,
                 self.raw_data,
             )
+            response.raise_if_error()
         elif self.customer_profile_id:
             output = create_payment_profile(
                 self.customer_profile.profile_id,
@@ -308,6 +326,7 @@ class CustomerPaymentProfile(models.Model):
                 self.raw_data,
             )
             response = output['response']
+            response.raise_if_error()
             self.payment_profile_id = output['payment_profile_id']
         else:
             output = add_profile(
@@ -316,13 +335,13 @@ class CustomerPaymentProfile(models.Model):
                 self.raw_data,
             )
             response = output['response']
+            response.raise_if_error()
             self.customer_profile = CustomerProfile.objects.create(
                 customer=self.customer,
                 profile_id=output['profile_id'],
                 sync=False,
             )
             self.payment_profile_id = output['payment_profile_ids'][0]
-        response.raise_if_error()
 
     @property
     def raw_data(self):
