@@ -301,6 +301,7 @@ class CustomerPaymentProfile(models.Model):
                 self.raw_data,
                 self.raw_data,
             )
+            response.raise_if_error()
         elif self.customer_profile_id:
             output = create_payment_profile(
                 self.customer_profile.profile_id,
@@ -308,6 +309,7 @@ class CustomerPaymentProfile(models.Model):
                 self.raw_data,
             )
             response = output['response']
+            response.raise_if_error()
             self.payment_profile_id = output['payment_profile_id']
         else:
             output = add_profile(
@@ -316,13 +318,13 @@ class CustomerPaymentProfile(models.Model):
                 self.raw_data,
             )
             response = output['response']
+            response.raise_if_error()
             self.customer_profile = CustomerProfile.objects.create(
                 customer=self.customer,
                 profile_id=output['profile_id'],
                 sync=False,
             )
             self.payment_profile_id = output['payment_profile_ids'][0]
-        response.raise_if_error()
 
     @property
     def raw_data(self):
