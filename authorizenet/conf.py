@@ -1,4 +1,20 @@
-"""Application-specific settings for django-authorizenet"""
+"""
+Application-specific settings for django-authorizenet
+
+Available settings:
+
+    - AUTHNET_DEBUG: Set to ``True`` if using Authorize.NET test account
+    - AUTHNET_LOGIN_ID: Set to value of Authorize.NET login ID
+    - AUTHNET_TRANSACTION_KEY: Set to value of Authorize.NET transaction key
+    - AUTHNET_CUSTOMER_MODEL: Used to set customer model used for CIM customers
+    (defaults to Django user)
+    - AUTHNET_DELIM_CHAR: Used to set delimiter character for CIM requests
+    (defaults to "|")
+    - AUTHNET_FORCE_TEST_REQUEST
+    - AUTHNET_EMAIL_CUSTOMER
+    - AUTHNET_MD5_HASH
+
+"""
 
 from django.conf import settings as django_settings
 

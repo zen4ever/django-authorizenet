@@ -2,8 +2,10 @@
 sample_project/local_settings.py
 sample_project/dev.db
 *.egg-info
+*.egg
 build/
 dist/
 .coverage
 .tox
 htmlcov
+docs/_build/
