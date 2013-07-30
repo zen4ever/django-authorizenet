@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-from setuptools import setup, find_packages
+from setuptools import setup
 import os
 
 setup(name='django-authorizenet',
@@ -25,4 +25,5 @@ setup(name='django-authorizenet',
       ).read().strip(),
       test_suite='runtests.runtests',
       tests_require=['httmock'],
-      install_requires=['requests', 'django>=1.4', 'django-relatives>=0.2.0'])
+      install_requires=['requests', 'django>=1.4.2',
+                        'django-relatives>=0.3.1'])
