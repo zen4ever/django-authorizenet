@@ -1,7 +1,8 @@
 import re
 import xml.dom.minidom
 
-from django.utils.datastructures import SortedDict
+#from django.utils.datastructures import SortedDict
+from collections import OrderedDict as SortedDict
 from authorizenet.conf import settings
 import requests
 
