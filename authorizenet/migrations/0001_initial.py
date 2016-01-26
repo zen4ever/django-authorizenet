@@ -26,34 +26,7 @@ class Migration(migrations.Migration):
                 ('created', models.DateTimeField(auto_now_add=True, null=True)),
             ],
         ),
-        migrations.CreateModel(
-            name='CustomerPaymentProfile',
-            fields=[
-                ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('payment_profile_id', models.CharField(max_length=50)),
-                ('first_name', models.CharField(blank=True, max_length=50)),
-                ('last_name', models.CharField(blank=True, max_length=50)),
-                ('company', models.CharField(blank=True, max_length=50)),
-                ('phone_number', models.CharField(blank=True, max_length=25)),
-                ('fax_number', models.CharField(blank=True, max_length=25)),
-                ('address', models.CharField(blank=True, max_length=60)),
-                ('city', models.CharField(blank=True, max_length=40)),
-                ('state', models.CharField(blank=True, max_length=40)),
-                ('zip', models.CharField(blank=True, max_length=20, verbose_name=b'ZIP')),
-                ('country', models.CharField(blank=True, max_length=60)),
-                ('card_number', models.CharField(blank=True, max_length=16)),
-                ('expiration_date', models.DateField(blank=True, null=True)),
-                ('customer', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='payment_profiles', to=settings.AUTH_USER_MODEL)),
-            ],
-        ),
-        migrations.CreateModel(
-            name='CustomerProfile',
-            fields=[
-                ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('profile_id', models.CharField(max_length=50)),
-                ('customer', models.OneToOneField(on_delete=django.db.models.deletion.CASCADE, related_name='customer_profile', to=settings.AUTH_USER_MODEL)),
-            ],
-        ),
+    
         migrations.CreateModel(
             name='Response',
             fields=[
@@ -104,14 +77,11 @@ class Migration(migrations.Migration):
                 ('created', models.DateTimeField(auto_now_add=True, null=True)),
             ],
         ),
-        migrations.AddField(
-            model_name='customerpaymentprofile',
-            name='customer_profile',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='payment_profiles', to='authorizenet.CustomerProfile'),
-        ),
+        
         migrations.AddField(
             model_name='cimresponse',
             name='transaction_response',
             field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, to='authorizenet.Response'),
-        ),
+        )         
+
     ]
