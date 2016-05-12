@@ -3,16 +3,15 @@ try:
 except ImportError:
     import md5 as hashlib
 
-from authorizenet.conf import settings
+from .conf import settings
 from django.shortcuts import render
 from django.views.decorators.csrf import csrf_exempt
 from django.views.generic.edit import CreateView, UpdateView
 
-from authorizenet.forms import AIMPaymentForm, BillingAddressForm, CustomerPaymentForm
-from authorizenet.models import CustomerProfile, CustomerPaymentProfile
-from authorizenet.models import Response
-from authorizenet.signals import payment_was_successful, payment_was_flagged
-from authorizenet.utils import process_payment, combine_form_data
+from .forms import AIMPaymentForm, BillingAddressForm, CustomerPaymentForm
+from .models import Response
+from .signals import payment_was_successful, payment_was_flagged
+from .utils import process_payment, combine_form_data
 
 
 @csrf_exempt

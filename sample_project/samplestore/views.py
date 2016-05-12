@@ -9,7 +9,7 @@ from django.template import RequestContext
 from django.contrib.sites.models import Site
 from django.contrib.auth.decorators import login_required
 
-from authorizenet import AUTHNET_POST_URL, AUTHNET_TEST_POST_URL
+from authorizenet.settings import AUTHNET_POST_URL, AUTHNET_TEST_POST_URL
 from authorizenet.forms import SIMPaymentForm, SIMBillingForm, ShippingAddressForm
 from authorizenet.models import Response
 from authorizenet.views import AIMPayment

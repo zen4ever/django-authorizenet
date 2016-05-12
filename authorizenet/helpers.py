@@ -2,8 +2,8 @@ import re
 
 import requests
 
-from authorizenet.conf import settings
-from authorizenet import AUTHNET_POST_URL, AUTHNET_TEST_POST_URL
+from .conf import settings
+from .settings import AUTHNET_POST_URL, AUTHNET_TEST_POST_URL
 
 
 class AIMPaymentHelper(object):

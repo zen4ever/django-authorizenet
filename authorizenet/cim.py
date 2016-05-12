@@ -2,12 +2,11 @@ import re
 import xml.dom.minidom
 
 from django.utils.datastructures import SortedDict
-from authorizenet.conf import settings
+from .conf import settings
 import requests
 
-from authorizenet import AUTHNET_CIM_URL, AUTHNET_TEST_CIM_URL
-from authorizenet.signals import customer_was_created, customer_was_flagged, \
-        payment_was_successful, payment_was_flagged
+from .settings import AUTHNET_CIM_URL, AUTHNET_TEST_CIM_URL
+from .signals import customer_was_created, customer_was_flagged, payment_was_successful, payment_was_flagged
 
 
 BILLING_FIELDS = ('firstName',
@@ -330,7 +329,7 @@ class BaseRequest(object):
         return node
 
     def create_response_object(self):
-        from authorizenet.models import CIMResponse
+        from .models import CIMResponse
         return CIMResponse.objects.create(result=self.result,
                                           result_code=self.resultCode,
                                           result_text=self.resultText)
@@ -769,7 +768,7 @@ class CreateTransactionRequest(BaseRequest):
         self.root.appendChild(extra_options_node)
 
     def create_response_object(self):
-        from authorizenet.models import CIMResponse, Response
+        from .models import CIMResponse, Response
         try:
             response = Response.objects.create_from_list(
                     self.transaction_result)

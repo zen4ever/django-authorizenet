@@ -2,10 +2,10 @@ import hmac
 
 from django.core.exceptions import ImproperlyConfigured
 
-from authorizenet.conf import settings
-from authorizenet.helpers import AIMPaymentHelper
-from authorizenet.models import Response
-from authorizenet.signals import payment_was_successful, payment_was_flagged
+from .conf import settings
+from .helpers import AIMPaymentHelper
+from .models import Response
+from .signals import payment_was_successful, payment_was_flagged
 
 
 def get_fingerprint(x_fp_sequence, x_fp_timestamp, x_amount):
