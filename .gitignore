@@ -9,3 +9,4 @@ dist/
 .tox
 htmlcov
 docs/_build/
+.idea/
