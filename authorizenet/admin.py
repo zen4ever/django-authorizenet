@@ -1,9 +1,8 @@
 from django.contrib import admin
 from django.core.urlresolvers import reverse
 from django.utils.safestring import mark_safe
-from authorizenet.models import (Response, CIMResponse, CustomerProfile,
-                                 CustomerPaymentProfile)
-from authorizenet.forms import CustomerPaymentForm, CustomerPaymentAdminForm
+from .models import Response, CIMResponse, CustomerProfile, CustomerPaymentProfile
+from .forms import CustomerPaymentForm, CustomerPaymentAdminForm
 from relatives.utils import object_edit_link
 
 
