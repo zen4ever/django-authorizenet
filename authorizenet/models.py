@@ -203,7 +203,7 @@ class CIMResponse(models.Model):
     result_code = models.CharField(max_length=8,
                                    choices=CIM_RESPONSE_CODE_CHOICES)
     result_text = models.TextField()
-    transaction_response = models.ForeignKey(Response, blank=True, null=True)
+    transaction_response = models.ForeignKey(Response, blank=True, null=True, on_delete=models.SET_NULL)
     created = models.DateTimeField(auto_now_add=True, null=True)
 
     @property
